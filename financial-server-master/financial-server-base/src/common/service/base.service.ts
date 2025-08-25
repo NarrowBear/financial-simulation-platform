@@ -4,7 +4,7 @@ import { Repository, ObjectLiteral, DeepPartial } from "typeorm";
 
 @Injectable()
 export class BaseService<T extends ObjectLiteral> {
-    constructor(private readonly respository: Repository<T>) {}
+    constructor(protected readonly respository: Repository<T>) {}
 
     async findAll(): Promise<T[]> {
         return await this.respository.find();
@@ -12,6 +12,10 @@ export class BaseService<T extends ObjectLiteral> {
 
     async findOne(condition: Partial<T>): Promise<T | null> {
         return await this.respository.findOneBy(condition);
+    }
+
+    async findBy(condition: Partial<T>): Promise<T[]> {
+        return await this.respository.findBy(condition);
     }
 
     async create(entity: DeepPartial<T>): Promise<T> {
