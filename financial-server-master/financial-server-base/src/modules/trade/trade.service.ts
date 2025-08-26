@@ -6,6 +6,7 @@ import { Repository } from "typeorm";
 import { Order } from "../order/entities/order.entity";
 import { OrderOperation, OrderStatus } from "src/common/enums/order.enums";
 import { OrderService } from "../order/order.service";
+import { DoubleHeapUtils } from "src/common/utils/double-heap.utils";
 
 @Injectable()
 export class TradeService extends BaseService<TradeRecord> {
@@ -36,10 +37,38 @@ export class TradeService extends BaseService<TradeRecord> {
         const buyOrders = pendingOrders.filter(order => order.operation === OrderOperation.BUY).sort((a, b) => b.price - a.price);
         const sellOrders = pendingOrders.filter(order => order.operation === OrderOperation.SELL).sort((a, b) => a.price - b.price);
 
-        // todo: match buy and sell orders
-        for (const buyOrder of buyOrders) {
-            
+        const buyHeap = new DoubleHeapUtils<Order>('price');
+        buyHeap.initHeap(buyOrders);
+        const sellHeap = new DoubleHeapUtils<Order>('price');
+        sellHeap.initHeap(sellOrders);
+        while(buyHeap.getSize() > 0 && sellHeap.getSize() > 0) {
+            const buyOrder = buyHeap.peek();
+            const sellOrder = sellHeap.peek();
+            if(buyOrder === null || sellOrder === null) {
+                break;
+            }
+            const buyTradeRecord = new TradeRecord(), sellTradeRecord = new TradeRecord();
+            buyTradeRecord.accountId = buyOrder.accountId;
+            buyTradeRecord.symbol = buyOrder.symbol;
+            buyTradeRecord.orderId = buyOrder.id;
+            // when buy order price is greater than or equal to sell order price, then match the order
+            if (buyOrder.price > sellOrder.price) {
+                // the first situation, buy order price is greater than sell order price,
+                if(buyOrder.quantity > sellOrder.quantity) {
+                    
+                    buyTradeRecord.tradeQuantity = sellOrder.quantity;
+                    buyTradeRecord.orderType = OrderOperation.BUY;
+                    buyTradeRecord.price = sellOrder.price;
 
+                    sellTradeRecord.accountId = sellOrder.accountId;
+                    sellTradeRecord.symbol = sellOrder.symbol;
+                    sellTradeRecord.orderId = sellOrder.id;
+                    sellTradeRecord.tradeQuantity = sellOrder.quantity;
+                    sellTradeRecord.orderType = OrderOperation.SELL;
+                    sellTradeRecord.price = buyOrder.price;
+
+                }
+            }
         }
     }
 }
