@@ -9,12 +9,11 @@ export class TradeRecord {
   accountId: number;
 
   @Column({ 
-    type: 'varchar', 
-    length: 16, 
+    type: 'int', 
     nullable: true, 
     comment: '股票' 
   })
-  symbol: string;
+  symbol: number;
 
   @Column({ name: 'order_id', nullable: true, comment: '订单ID' })
   orderId: number;
