@@ -7,6 +7,8 @@ import { Order } from "../order/entities/order.entity";
 import { OrderOperation, OrderStatus } from "src/common/enums/order.enums";
 import { OrderService } from "../order/order.service";
 import { DoubleHeapUtils } from "src/common/utils/double-heap.utils";
+import { RedisService } from "src/common/service/redis.service";
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class TradeService extends BaseService<TradeRecord> {
@@ -15,6 +17,7 @@ export class TradeService extends BaseService<TradeRecord> {
         private readonly tradeRecordRepository: Repository<TradeRecord>,
         @InjectRepository(Order)
         private readonly orderService: OrderService,
+        private readonly redisService: RedisService,
     ) {
         super(tradeRecordRepository);
     }
@@ -30,45 +33,127 @@ export class TradeService extends BaseService<TradeRecord> {
      * 6. update trade record status to 'success'
      */
     async matchMarketing(symbol: string): Promise<void> {
-        const pendingOrders = await this.orderService.findBy({
-            status: OrderStatus.PENDING,
-            symbol: Number(symbol)
-        });
-        const buyOrders = pendingOrders.filter(order => order.operation === OrderOperation.BUY).sort((a, b) => b.price - a.price);
-        const sellOrders = pendingOrders.filter(order => order.operation === OrderOperation.SELL).sort((a, b) => a.price - b.price);
+        // add lock, lock the symbol
+        const lockKey = `trade:lock:${symbol}`;
+        const lockValue = uuidv4();
+        const lockResult = await this.redisService.setnx(lockKey, lockValue, 10);
+        if(!lockResult) {
+            throw new Error('Lock acquisition failed');
+        }
+        try {
+            const pendingOrders = await this.orderService.findBy({
+                status: OrderStatus.PENDING,
+                symbol: Number(symbol)
+            });
+            const buyOrders = pendingOrders.filter(order => order.operation === OrderOperation.BUY).sort((a, b) => b.price - a.price);
+            const sellOrders = pendingOrders.filter(order => order.operation === OrderOperation.SELL).sort((a, b) => a.price - b.price);
 
-        const buyHeap = new DoubleHeapUtils<Order>('price');
-        buyHeap.initHeap(buyOrders);
-        const sellHeap = new DoubleHeapUtils<Order>('price');
-        sellHeap.initHeap(sellOrders);
-        while(buyHeap.getSize() > 0 && sellHeap.getSize() > 0) {
-            const buyOrder = buyHeap.peek();
-            const sellOrder = sellHeap.peek();
-            if(buyOrder === null || sellOrder === null) {
-                break;
-            }
-            const buyTradeRecord = new TradeRecord(), sellTradeRecord = new TradeRecord();
-            buyTradeRecord.accountId = buyOrder.accountId;
-            buyTradeRecord.symbol = buyOrder.symbol;
-            buyTradeRecord.orderId = buyOrder.id;
-            // when buy order price is greater than or equal to sell order price, then match the order
-            if (buyOrder.price > sellOrder.price) {
-                // the first situation, buy order price is greater than sell order price,
-                if(buyOrder.quantity > sellOrder.quantity) {
+            const buyHeap = new DoubleHeapUtils<Order>('price');
+            buyHeap.initHeap(buyOrders);
+            const sellHeap = new DoubleHeapUtils<Order>('price');
+            sellHeap.initHeap(sellOrders);
+            while(buyHeap.getSize() > 0 && sellHeap.getSize() > 0) {
+                const buyOrder = buyHeap.peek();
+                const sellOrder = sellHeap.peek();
+                if(buyOrder === null || sellOrder === null) {
+                    break;
+                }
+                // buy order available quantity and sell order available quantity
+                const buyAvailableQuantity = buyOrder.quantity - buyOrder.dealQuantity;
+                const sellAvailableQuantity = sellOrder.quantity - sellOrder.dealQuantity;
+                let sellStatus: OrderStatus = OrderStatus.PENDING, buyStatus: OrderStatus = OrderStatus.PENDING;
+                // when buy order price is greater than or equal to sell order price, then match the order
+                if (buyOrder.price >= sellOrder.price) {
+                    // the first situation, buy order price is greater than sell order price,
+                    if(buyAvailableQuantity > sellAvailableQuantity) {
+                        const result = await this.createTradeRecord(buyOrder, sellOrder, true);
+                        if(result) {
+                            sellHeap.extract(false);
+                            buyOrder.dealQuantity += sellAvailableQuantity;
+                            sellOrder.dealQuantity += sellAvailableQuantity;
+                            sellStatus = OrderStatus.FILLED;
+                            buyStatus = OrderStatus.PARTIAL_FILLED;
+                        }
+                    } else if (buyAvailableQuantity < sellAvailableQuantity) {
+                        const result = await this.createTradeRecord(buyOrder, sellOrder, false);
+                        if(result) {
+                            buyHeap.extract(true);
+                            sellOrder.dealQuantity += buyAvailableQuantity;
+                            buyOrder.dealQuantity += buyAvailableQuantity;
+                            sellStatus = OrderStatus.PARTIAL_FILLED;
+                            buyStatus = OrderStatus.FILLED;
+                        }
+                    } else {
+                        const result = await this.createTradeRecord(buyOrder, sellOrder, false);
+                        if(result) {
+                            buyHeap.extract(true);
+                            sellHeap.extract(false);
+                            buyOrder.dealQuantity += sellAvailableQuantity;
+                            sellOrder.dealQuantity += sellAvailableQuantity;
+                            sellStatus = OrderStatus.FILLED;
+                            buyStatus = OrderStatus.FILLED;
+                        }
+                    }
+                    await this.updateOrderStatus(buyOrder, buyOrder.dealQuantity, buyStatus);
+                    await this.updateOrderStatus(sellOrder, sellOrder.dealQuantity, sellStatus);
                     
-                    buyTradeRecord.tradeQuantity = sellOrder.quantity;
-                    buyTradeRecord.orderType = OrderOperation.BUY;
-                    buyTradeRecord.price = sellOrder.price;
-
-                    sellTradeRecord.accountId = sellOrder.accountId;
-                    sellTradeRecord.symbol = sellOrder.symbol;
-                    sellTradeRecord.orderId = sellOrder.id;
-                    sellTradeRecord.tradeQuantity = sellOrder.quantity;
-                    sellTradeRecord.orderType = OrderOperation.SELL;
-                    sellTradeRecord.price = buyOrder.price;
-
+                } else {
+                    break;
                 }
             }
+        } catch (error) {
+            console.error(error);
+            throw error;
+        } finally {
+            await this.redisService.releaseLock(lockKey, lockValue);
         }
+    }
+
+    /**
+     * Create trade record
+     * @param buyOrder 
+     * @param sellOrder 
+     * @param isBuyGreaterThanSell 
+     * @returns 
+     */
+    async createTradeRecord(buyOrder: Order, sellOrder: Order, isBuyGreaterThanSell: boolean): Promise<boolean> {
+        const buyTradeRecord = new TradeRecord(), sellTradeRecord = new TradeRecord();
+        buyTradeRecord.accountId = buyOrder.accountId;
+        buyTradeRecord.symbol = buyOrder.symbol;
+        buyTradeRecord.orderId = buyOrder.id;
+        buyTradeRecord.orderType = OrderOperation.BUY;
+        buyTradeRecord.price = sellOrder.price;
+        buyTradeRecord.createdTime = new Date();
+        buyTradeRecord.updateTime = new Date();
+        if(isBuyGreaterThanSell) {
+            buyTradeRecord.tradeQuantity = sellOrder.quantity - sellOrder.dealQuantity;
+            sellTradeRecord.tradeQuantity = sellOrder.quantity - sellOrder.dealQuantity;
+        } else {
+            buyTradeRecord.tradeQuantity = buyOrder.quantity - buyOrder.dealQuantity;
+            sellTradeRecord.tradeQuantity = buyOrder.quantity - buyOrder.dealQuantity;
+        }
+        sellTradeRecord.accountId = sellOrder.accountId;
+        sellTradeRecord.symbol = sellOrder.symbol;
+        sellTradeRecord.orderId = sellOrder.id;;
+        sellTradeRecord.orderType = OrderOperation.SELL;
+        sellTradeRecord.price = sellOrder.price;
+        sellTradeRecord.createdTime = new Date();
+        sellTradeRecord.updateTime = new Date();
+        await this.tradeRecordRepository.insert([buyTradeRecord, sellTradeRecord]);
+        return true;
+    }
+
+    /**
+     * Update order status
+     * @param order 
+     * @param dealQuantity 
+     * @param status 
+     */
+    async updateOrderStatus(order: Order, dealQuantity: number, status: OrderStatus) {
+        await this.orderService.update(order.id, {
+            status: status,
+            dealQuantity: dealQuantity,
+            updateTime: new Date()
+        });
     }
 }

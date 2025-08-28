@@ -17,6 +17,9 @@ export class Account {
     balance: number;
 
     @Column()
+    frozen: number;
+
+    @Column()
     currency: Currency;
 
     @Column({ name: 'status'})

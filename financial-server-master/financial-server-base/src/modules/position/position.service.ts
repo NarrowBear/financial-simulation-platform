@@ -4,13 +4,37 @@ import { Repository } from 'typeorm';
 import { Position } from './entities/position.entity';
 import { CreatePositionDto } from './dto/create-position.dto';
 import { UpdatePositionDto } from './dto/update-position.dto';
+import { v4 as uuidv4 } from 'uuid';
+import { RedisService } from 'src/common/service/redis.service';
 
 @Injectable()
 export class PositionService {
   constructor(
     @InjectRepository(Position)
     private positionRepository: Repository<Position>,
+    private readonly redisService: RedisService,
   ) {}
+
+  /**
+   * Frozen symbol quantity
+   * @param accountId 
+   * @param symbol 
+   * @param quantity 
+   * @returns 
+   */
+  async frozenSymbolQuantity(accountId: number, symbol: string, frozenQuantity: number): Promise<boolean> {
+    const position = await this.positionRepository.findOne({ where: { accountId, symbol } });
+    if(!position) {
+      throw new BadRequestException('持仓记录不存在');
+    }
+    if(frozenQuantity > position.quantity) {
+      throw new BadRequestException('持仓数量不足');
+    }
+    position.frozenQuantity += frozenQuantity;
+    position.quantity -= frozenQuantity;
+    await this.positionRepository.update(position.id, { frozenQuantity: position.frozenQuantity, quantity: position.quantity });
+    return true;
+  }
 
   async create(createPositionDto: CreatePositionDto): Promise<Position> {
     // 检查是否已存在相同账户和股票的持仓
