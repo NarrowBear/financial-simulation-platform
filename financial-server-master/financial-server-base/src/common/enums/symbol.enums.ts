@@ -5,8 +5,8 @@ export enum SymbolStatus {
 }
 
 export enum MarketType {
-    SHANGHAI = 'SH',    // 上海证券交易所
-    SHENZHEN = 'SZ',    // 深圳证券交易所
-    BEIJING = 'BJ',     // 北京证券交易所
-    HONGKONG = 'HK'     // 香港证券交易所
+    SHANGHAI = 'SH',    // Shanghai Stock Exchange
+    SHENZHEN = 'SZ',    // Shenzhen Stock Exchange
+    BEIJING = 'BJ',     // Beijing Stock Exchange
+    HONGKONG = 'HK'     // Hong Kong Stock Exchange
 } 

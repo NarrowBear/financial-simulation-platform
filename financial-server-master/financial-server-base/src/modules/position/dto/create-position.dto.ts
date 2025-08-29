@@ -1,21 +1,21 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreatePositionDto {
-  @IsNotEmpty({ message: '账户ID不能为空' })
-  @IsNumber({}, { message: '账户ID必须是数字' })
+  @IsNotEmpty({ message: 'Account ID cannot be empty' })
+  @IsNumber({}, { message: 'Account ID must be a number' })
   accountId: number;
 
-  @IsNotEmpty({ message: '股票代码不能为空' })
-  @IsString({ message: '股票代码必须是字符串' })
+  @IsNotEmpty({ message: 'Symbol cannot be empty' })
+  @IsString({ message: 'Symbol must be a string' })
   symbol: string;
 
   @IsOptional()
-  @IsNumber({}, { message: '持仓数量必须是数字' })
-  @Min(0, { message: '持仓数量不能为负数' })
+  @IsNumber({}, { message: 'Position quantity must be a number' })
+  @Min(0, { message: 'Position quantity cannot be negative' })
   quantity?: number;
 
   @IsOptional()
-  @IsNumber({}, { message: '冻结数量必须是数字' })
-  @Min(0, { message: '冻结数量不能为负数' })
+  @IsNumber({}, { message: 'Frozen quantity must be a number' })
+  @Min(0, { message: 'Frozen quantity cannot be negative' })
   frozenQuantity?: number;
 } 

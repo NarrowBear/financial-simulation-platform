@@ -11,7 +11,7 @@ export class Symbol {
     type: 'varchar', 
     length: 16, 
     nullable: true, 
-    comment: '股票代码' 
+    comment: 'Stock symbol' 
   })
   symbol: string;
 
@@ -20,7 +20,7 @@ export class Symbol {
     type: 'varchar', 
     length: 128, 
     nullable: true, 
-    comment: '股票名称' 
+    comment: 'Stock name' 
   })
   symbolName: string;
 
@@ -28,12 +28,12 @@ export class Symbol {
     type: 'varchar', 
     length: 10, 
     nullable: true, 
-    comment: '所属交易市场',
+    comment: 'Trading market',
     enum: MarketType
   })
   market: MarketType;
 
-  @Column({ name: 'lot_size', nullable: true, comment: '最少交易数量' })
+  @Column({ name: 'lot_size', nullable: true, comment: 'Minimum trading quantity' })
   lotSize: number;
 
   @Column({ 
@@ -42,7 +42,7 @@ export class Symbol {
     precision: 18, 
     scale: 2, 
     nullable: true, 
-    comment: '最小交易金额' 
+    comment: 'Minimum trading amount' 
   })
   tickSize: number;
 
@@ -50,7 +50,7 @@ export class Symbol {
     type: 'varchar', 
     length: 10, 
     nullable: true, 
-    comment: '状态',
+    comment: 'Status',
     enum: SymbolStatus
   })
   status: SymbolStatus;
@@ -61,7 +61,7 @@ export class Symbol {
     precision: 18, 
     scale: 2, 
     nullable: true, 
-    comment: '最新成交价' 
+    comment: 'Last traded price' 
   })
   lastPrice: number;
 
@@ -71,7 +71,7 @@ export class Symbol {
     precision: 18, 
     scale: 2, 
     nullable: true, 
-    comment: '收盘价' 
+    comment: 'Previous closing price' 
   })
   prevClose: number;
 

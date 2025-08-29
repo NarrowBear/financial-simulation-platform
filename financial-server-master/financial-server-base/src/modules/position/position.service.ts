@@ -25,10 +25,10 @@ export class PositionService {
   async frozenSymbolQuantity(accountId: number, symbol: string, frozenQuantity: number): Promise<boolean> {
     const position = await this.positionRepository.findOne({ where: { accountId, symbol } });
     if(!position) {
-      throw new BadRequestException('持仓记录不存在');
+      throw new BadRequestException('Position record does not exist');
     }
     if(frozenQuantity > position.quantity) {
-      throw new BadRequestException('持仓数量不足');
+      throw new BadRequestException('Insufficient position quantity');
     }
     position.frozenQuantity += frozenQuantity;
     position.quantity -= frozenQuantity;
@@ -37,7 +37,7 @@ export class PositionService {
   }
 
   async create(createPositionDto: CreatePositionDto): Promise<Position> {
-    // 检查是否已存在相同账户和股票的持仓
+    // Check if position already exists for the same account and symbol
     const existingPosition = await this.positionRepository.findOne({
       where: {
         accountId: createPositionDto.accountId,
@@ -46,7 +46,7 @@ export class PositionService {
     });
 
     if (existingPosition) {
-      throw new BadRequestException('该账户已存在该股票的持仓记录');
+      throw new BadRequestException('Position record already exists for this account and symbol');
     }
 
     const position = this.positionRepository.create({
@@ -81,7 +81,7 @@ export class PositionService {
   async findOne(id: number): Promise<Position> {
     const position = await this.positionRepository.findOne({ where: { id } });
     if (!position) {
-      throw new NotFoundException(`持仓ID ${id} 不存在`);
+      throw new NotFoundException(`Position ID ${id} does not exist`);
     }
     return position;
   }
@@ -103,12 +103,12 @@ export class PositionService {
     await this.positionRepository.remove(position);
   }
 
-  // 增加持仓数量
+  // Increase position quantity
   async increaseQuantity(accountId: number, symbol: string, quantity: number): Promise<Position> {
     let position = await this.findByAccountAndSymbol(accountId, symbol);
     
     if (!position) {
-      // 如果不存在持仓记录，创建一个新的
+      // If position record doesn't exist, create a new one
       position = await this.create({
         accountId,
         symbol,
@@ -123,21 +123,21 @@ export class PositionService {
     return position;
   }
 
-  // 减少持仓数量
+  // Decrease position quantity
   async decreaseQuantity(accountId: number, symbol: string, quantity: number): Promise<Position> {
     const position = await this.findByAccountAndSymbol(accountId, symbol);
     
     if (!position) {
-      throw new BadRequestException('持仓记录不存在');
+      throw new BadRequestException('Position record does not exist');
     }
     
     if (position.quantity < quantity) {
-      throw new BadRequestException('持仓数量不足');
+      throw new BadRequestException('Insufficient position quantity');
     }
     
     position.quantity -= quantity;
     
-    // 如果持仓数量为0，删除该记录
+    // If position quantity becomes 0, remove the record
     if (position.quantity === 0) {
       await this.positionRepository.remove(position);
       return position;
@@ -146,16 +146,16 @@ export class PositionService {
     return await this.positionRepository.save(position);
   }
 
-  // 冻结持仓数量
+  // Freeze position quantity
   async freezeQuantity(accountId: number, symbol: string, quantity: number): Promise<Position> {
     const position = await this.findByAccountAndSymbol(accountId, symbol);
     
     if (!position) {
-      throw new BadRequestException('持仓记录不存在');
+      throw new BadRequestException('Position record does not exist');
     }
     
     if (position.quantity < quantity) {
-      throw new BadRequestException('持仓数量不足');
+      throw new BadRequestException('Insufficient position quantity');
     }
     
     position.quantity -= quantity;
@@ -164,16 +164,16 @@ export class PositionService {
     return await this.positionRepository.save(position);
   }
 
-  // 解冻持仓数量
+  // Unfreeze position quantity
   async unfreezeQuantity(accountId: number, symbol: string, quantity: number): Promise<Position> {
     const position = await this.findByAccountAndSymbol(accountId, symbol);
     
     if (!position) {
-      throw new BadRequestException('持仓记录不存在');
+      throw new BadRequestException('Position record does not exist');
     }
     
     if (position.frozenQuantity < quantity) {
-      throw new BadRequestException('冻结数量不足');
+      throw new BadRequestException('Insufficient frozen quantity');
     }
     
     position.frozenQuantity -= quantity;

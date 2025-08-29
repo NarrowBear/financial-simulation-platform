@@ -6,20 +6,20 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'account_id', nullable: true, comment: '所属账号ID' })
+  @Column({ name: 'account_id', nullable: true, comment: 'Account ID' })
   accountId: number;
 
-  @Column({ nullable: true, comment: '股票代码' })
+  @Column({ nullable: true, comment: 'Stock symbol' })
   symbol: number;
 
-  @Column({ name: 'symbol_name', length: 50, nullable: true, comment: '股票名称' })
+  @Column({ name: 'symbol_name', length: 50, nullable: true, comment: 'Stock name' })
   symbolName: string;
 
   @Column({ 
     type: 'varchar', 
     length: 16, 
     nullable: true, 
-    comment: '操作类型（Buy，Sell）',
+    comment: 'Operation type (Buy, Sell)',
     enum: OrderOperation
   })
   operation: OrderOperation;
@@ -29,12 +29,12 @@ export class Order {
     type: 'varchar', 
     length: 16, 
     nullable: true, 
-    comment: '订单类型（Market/Limit）',
+    comment: 'Order type (Market/Limit)',
     enum: OrderType
   })
   orderType: OrderType;
 
-  @Column({ nullable: true, comment: '数量' })
+  @Column({ nullable: true, comment: 'Quantity' })
   quantity: number;
 
   @Column({ 
@@ -42,18 +42,18 @@ export class Order {
     precision: 18, 
     scale: 2, 
     nullable: true, 
-    comment: '价格（限价单）' 
+    comment: 'Price (for limit orders)' 
   })
   price: number;
 
-  @Column({ name: 'deal_quantity', nullable: true, comment: '已成交数量' })
+  @Column({ name: 'deal_quantity', nullable: true, comment: 'Dealt quantity' })
   dealQuantity: number;
 
   @Column({ 
     type: 'varchar', 
     length: 16, 
     nullable: true, 
-    comment: '状态',
+    comment: 'Status',
     enum: OrderStatus
   })
   status: OrderStatus;

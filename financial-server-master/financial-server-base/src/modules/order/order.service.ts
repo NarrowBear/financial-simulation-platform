@@ -6,34 +6,52 @@ import { OrderStatus, OrderType } from '../../common/enums/order.enums';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { BaseService } from '../../common/service/base.service';
+import { AccountService } from '../account/account.service';
+import { PositionService } from '../position/position.service';
 
 @Injectable()
 export class OrderService extends BaseService<Order> {
   constructor(
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
+    private accountService: AccountService,
+    private positionService: PositionService,
   ) {
     super(orderRepository);
   }
 
+  /**
+   * Create order
+   * @param createOrderDto 
+   * @returns 
+   */
   async create(createOrderDto: CreateOrderDto): Promise<Order> {
-    // 验证限价单必须提供价格
     if (createOrderDto.orderType === OrderType.LIMIT && !createOrderDto.price) {
-      throw new BadRequestException('限价单必须提供价格');
+      throw new BadRequestException('Limit orders must provide a price');
     }
-
-    // 验证市价单不能提供价格
     if (createOrderDto.orderType === OrderType.MARKET && createOrderDto.price) {
-      throw new BadRequestException('市价单不能提供价格');
+      throw new BadRequestException('Market orders cannot provide a price');
     }
-
-    const order = this.orderRepository.create({
-      ...createOrderDto,
-      dealQuantity: 0,
-      status: OrderStatus.PENDING,
-    });
-
-    return await this.orderRepository.save(order);
+    const queryRunner = this.orderRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const account = await this.accountService.findOne({});
+      const order = this.orderRepository.create({
+        ...createOrderDto,
+        dealQuantity: 0,
+        status: OrderStatus.PENDING,
+      });
+      await queryRunner.manager.save(Order, order);
+      await queryRunner.commitTransaction();
+      
+      return order;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async findAll(): Promise<Order[]> {
@@ -56,20 +74,12 @@ export class OrderService extends BaseService<Order> {
     });
   }
 
-  async findOne(id: number): Promise<Order> {
-    const order = await this.orderRepository.findOne({ where: { id } });
-    if (!order) {
-      throw new NotFoundException(`订单ID ${id} 不存在`);
-    }
-    return order;
-  }
-
   async update(id: number, updateOrderDto: UpdateOrderDto): Promise<Order> {
     const order = await this.findOne(id);
     
-    // 检查订单状态是否允许修改
+    // Check if order status allows modification
     if (order.status === OrderStatus.FILLED || order.status === OrderStatus.CANCELLED) {
-      throw new BadRequestException('已成交或已取消的订单不能修改');
+      throw new BadRequestException('Filled or cancelled orders cannot be modified');
     }
 
     Object.assign(order, updateOrderDto);
@@ -80,11 +90,11 @@ export class OrderService extends BaseService<Order> {
     const order = await this.findOne(id);
     
     if (order.status === OrderStatus.FILLED) {
-      throw new BadRequestException('已成交的订单不能取消');
+      throw new BadRequestException('Filled orders cannot be cancelled');
     }
     
     if (order.status === OrderStatus.CANCELLED) {
-      throw new BadRequestException('订单已经是取消状态');
+      throw new BadRequestException('Order is already cancelled');
     }
 
     order.status = OrderStatus.CANCELLED;

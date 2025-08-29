@@ -2,33 +2,33 @@ import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-v
 import { OrderOperation, OrderType } from '../../../common/enums/order.enums';
 
 export class CreateOrderDto {
-  @IsNotEmpty({ message: '账号ID不能为空' })
-  @IsNumber({}, { message: '账号ID必须是数字' })
+  @IsNotEmpty({ message: 'Account ID cannot be empty' })
+  @IsNumber({}, { message: 'Account ID must be a number' })
   accountId: number;
 
-  @IsNotEmpty({ message: '股票代码不能为空' })
-  @IsNumber({}, { message: '股票代码必须是数字' })
+  @IsNotEmpty({ message: 'Symbol cannot be empty' })
+  @IsNumber({}, { message: 'Symbol must be a number' })
   symbol: number;
 
   @IsOptional()
-  @IsString({ message: '股票名称必须是字符串' })
+  @IsString({ message: 'Symbol name must be a string' })
   symbolName?: string;
 
-  @IsNotEmpty({ message: '操作类型不能为空' })
-  @IsEnum(OrderOperation, { message: '操作类型必须是Buy或Sell' })
+  @IsNotEmpty({ message: 'Operation type cannot be empty' })
+  @IsEnum(OrderOperation, { message: 'Operation type must be Buy or Sell' })
   operation: OrderOperation;
 
-  @IsNotEmpty({ message: '订单类型不能为空' })
-  @IsEnum(OrderType, { message: '订单类型必须是Market或Limit' })
+  @IsNotEmpty({ message: 'Order type cannot be empty' })
+  @IsEnum(OrderType, { message: 'Order type must be Market or Limit' })
   orderType: OrderType;
 
-  @IsNotEmpty({ message: '数量不能为空' })
-  @IsNumber({}, { message: '数量必须是数字' })
-  @Min(1, { message: '数量必须大于0' })
+  @IsNotEmpty({ message: 'Quantity cannot be empty' })
+  @IsNumber({}, { message: 'Quantity must be a number' })
+  @Min(1, { message: 'Quantity must be greater than 0' })
   quantity: number;
 
   @IsOptional()
-  @IsNumber({}, { message: '价格必须是数字' })
-  @Min(0, { message: '价格不能为负数' })
+  @IsNumber({}, { message: 'Price must be a number' })
+  @Min(0, { message: 'Price cannot be negative' })
   price?: number;
 } 

@@ -5,21 +5,21 @@ export class Position {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'account_id', nullable: true, comment: '账户' })
+  @Column({ name: 'account_id', nullable: true, comment: 'Account' })
   accountId: number;
 
   @Column({ 
     type: 'varchar', 
     length: 16, 
     nullable: true, 
-    comment: '股票代码' 
+    comment: 'Stock symbol' 
   })
   symbol: string;
 
-  @Column({ nullable: true, comment: '持仓数量' })
+  @Column({ nullable: true, comment: 'Position quantity' })
   quantity: number;
 
-  @Column({ name: 'frozen_quantity', nullable: true, comment: '冻结数量' })
+  @Column({ name: 'frozen_quantity', nullable: true, comment: 'Frozen quantity' })
   frozenQuantity: number;
 
   @CreateDateColumn({ name: 'created_time' })

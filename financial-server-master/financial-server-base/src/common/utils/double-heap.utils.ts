@@ -26,7 +26,7 @@ export class DoubleHeapUtils<T> {
             return;
         }
 
-        // 找到插入位置（使用层级遍历找到第一个有空位的节点）
+        // Find insertion position (use level-order traversal to find first node with empty slot)
         const queue: Node<T>[] = [this.maxHeap];
         let parent: Node<T> | null = null;
         
@@ -80,14 +80,14 @@ export class DoubleHeapUtils<T> {
             return rootValue;
         }
 
-        // 找到最后一个节点
+        // Find the last node
         const lastNode = this.findLastNode();
         if (!lastNode) return rootValue;
 
-        // 将最后一个节点的值移到根节点
+        // Move the last node's value to the root
         this.maxHeap.setValue(lastNode.getValue());
         
-        // 移除最后一个节点
+        // Remove the last node
         const parent = lastNode.getParent();
         if (parent) {
             if (parent.getLeft() === lastNode) {
@@ -160,7 +160,7 @@ export class DoubleHeapUtils<T> {
         return lastNode;
     }
 
-    // 原有的 compare 和 swap 方法保持不变
+    // Original compare and swap methods remain unchanged
     private compare(a: T, b: T): number {
         const aValue = a[this.compareField];
         const bValue = b[this.compareField];
