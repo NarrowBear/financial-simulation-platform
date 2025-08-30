@@ -35,6 +35,13 @@ export class OrderService extends BaseService<Order> {
     if (createOrderDto.orderType === OrderType.MARKET && createOrderDto.price) {
       throw new BadRequestException('Market orders cannot provide a price');
     }
+    // lock account
+    const lockKey = `account:lock:${createOrderDto.accountNo}`;
+    const lockValue = uuidv4();
+    const lockResult = await this.redisService.setnx(lockKey, lockValue, 10);
+    if(!lockResult) {
+      throw new BadRequestException('Lock acquisition failed');
+    }
     const queryRunner = this.orderRepository.manager.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -43,14 +50,20 @@ export class OrderService extends BaseService<Order> {
       if(!account) {
         throw new BadRequestException('Account not found');
       }
-      // lock account
-      const lockKey = `account:lock:${createOrderDto.accountNo}`;
-      const lockValue = uuidv4();
-      const lockResult = await this.redisService.setnx(lockKey, lockValue, 10);
-      if(!lockResult) {
-        throw new BadRequestException('Lock acquisition failed');
+      let unitPrice = 0;
+      if(createOrderDto.orderType === OrderType.LIMIT) {
+        if(!createOrderDto.price) {
+          throw new BadRequestException('Limit orders must provide a price');
+        }
+        unitPrice = createOrderDto.price;
+      }
+      if(createOrderDto.orderType === OrderType.MARKET) {
+        // get middle price
+        
+        unitPrice = createOrderDto.maxSlippage ? createOrderDto.maxSlippage : 0;
       }
       if(createOrderDto.operation === OrderOperation.BUY) {
+
         // frozen amount
         await this.accountService.frozenAmountAndBalance(account.id, createOrderDto.quantity * createOrderDto.price);
       } else {
@@ -75,73 +88,4 @@ export class OrderService extends BaseService<Order> {
     }
   }
 
-  async findAll(): Promise<Order[]> {
-    return await this.orderRepository.find({
-      order: { createdTime: 'DESC' }
-    });
-  }
-
-  async findByAccountId(accountId: number): Promise<Order[]> {
-    return await this.orderRepository.find({
-      where: { accountId },
-      order: { createdTime: 'DESC' }
-    });
-  }
-
-  async findBySymbol(symbol: number): Promise<Order[]> {
-    return await this.orderRepository.find({
-      where: { symbol },
-      order: { createdTime: 'DESC' }
-    });
-  }
-
-  async update(id: number, updateOrderDto: UpdateOrderDto): Promise<Order> {
-    const order = await this.findOne(id);
-    
-    // Check if order status allows modification
-    if (order.status === OrderStatus.FILLED || order.status === OrderStatus.CANCELLED) {
-      throw new BadRequestException('Filled or cancelled orders cannot be modified');
-    }
-
-    Object.assign(order, updateOrderDto);
-    return await this.orderRepository.save(order);
-  }
-
-  async cancelOrder(id: number): Promise<Order> {
-    const order = await this.findOne(id);
-    
-    if (order.status === OrderStatus.FILLED) {
-      throw new BadRequestException('Filled orders cannot be cancelled');
-    }
-    
-    if (order.status === OrderStatus.CANCELLED) {
-      throw new BadRequestException('Order is already cancelled');
-    }
-
-    order.status = OrderStatus.CANCELLED;
-    return await this.orderRepository.save(order);
-  }
-
-  async remove(id: number): Promise<void> {
-    const order = await this.findOne(id);
-    await this.orderRepository.remove(order);
-  }
-
-  async getPendingOrders(): Promise<Order[]> {
-    return await this.orderRepository.find({
-      where: { status: OrderStatus.PENDING },
-      order: { createdTime: 'ASC' }
-    });
-  }
-
-  async updateOrderStatus(id: number, status: OrderStatus, dealQuantity?: number): Promise<Order> {
-    const order = await this.findOne(id);
-    
-    order.status = status;
-    if (dealQuantity !== undefined) {
-      order.dealQuantity = dealQuantity;
-    }
-    
-    return await this.orderRepository.save(order);
-  }
 } 
