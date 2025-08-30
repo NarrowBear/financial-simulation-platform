@@ -22,7 +22,7 @@ export class PositionService {
    * @param quantity 
    * @returns 
    */
-  async frozenSymbolQuantity(accountId: number, symbol: string, frozenQuantity: number): Promise<boolean> {
+  async frozenSymbolQuantity(accountId: number, symbol: number, frozenQuantity: number): Promise<boolean> {
     const position = await this.positionRepository.findOne({ where: { accountId, symbol } });
     if(!position) {
       throw new BadRequestException('Position record does not exist');

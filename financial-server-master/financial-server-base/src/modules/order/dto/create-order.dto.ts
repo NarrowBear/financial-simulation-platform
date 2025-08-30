@@ -2,9 +2,9 @@ import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-v
 import { OrderOperation, OrderType } from '../../../common/enums/order.enums';
 
 export class CreateOrderDto {
-  @IsNotEmpty({ message: 'Account ID cannot be empty' })
-  @IsNumber({}, { message: 'Account ID must be a number' })
-  accountId: number;
+  @IsNotEmpty({ message: 'Account Number cannot be empty' })
+  @IsString({ message: 'Account Number must be a string' })
+  accountNo: string;
 
   @IsNotEmpty({ message: 'Symbol cannot be empty' })
   @IsNumber({}, { message: 'Symbol must be a number' })
@@ -31,4 +31,9 @@ export class CreateOrderDto {
   @IsNumber({}, { message: 'Price must be a number' })
   @Min(0, { message: 'Price cannot be negative' })
   price?: number;
+
+  @IsOptional()
+  @IsNumber({}, { message: 'Max slippage must be a number' })
+  @Min(0, { message: 'Max slippage cannot be negative' })
+  maxSlippage: number
 } 

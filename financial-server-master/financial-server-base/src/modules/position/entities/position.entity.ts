@@ -9,12 +9,12 @@ export class Position {
   accountId: number;
 
   @Column({ 
-    type: 'varchar', 
+    type: 'int', 
     length: 16, 
     nullable: true, 
     comment: 'Stock symbol' 
   })
-  symbol: string;
+  symbol: number;
 
   @Column({ nullable: true, comment: 'Position quantity' })
   quantity: number;

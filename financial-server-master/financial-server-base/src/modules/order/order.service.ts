@@ -2,12 +2,14 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
-import { OrderStatus, OrderType } from '../../common/enums/order.enums';
+import { OrderOperation, OrderStatus, OrderType } from '../../common/enums/order.enums';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { BaseService } from '../../common/service/base.service';
 import { AccountService } from '../account/account.service';
 import { PositionService } from '../position/position.service';
+import { v4 as uuidv4 } from 'uuid';
+import { RedisService } from '../../common/service/redis.service';
 
 @Injectable()
 export class OrderService extends BaseService<Order> {
@@ -16,6 +18,7 @@ export class OrderService extends BaseService<Order> {
     private orderRepository: Repository<Order>,
     private accountService: AccountService,
     private positionService: PositionService,
+    private redisService: RedisService,
   ) {
     super(orderRepository);
   }
@@ -36,7 +39,24 @@ export class OrderService extends BaseService<Order> {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      const account = await this.accountService.findOne({});
+      const account = await this.accountService.findOne({accountNo: createOrderDto.accountNo});
+      if(!account) {
+        throw new BadRequestException('Account not found');
+      }
+      // lock account
+      const lockKey = `account:lock:${createOrderDto.accountNo}`;
+      const lockValue = uuidv4();
+      const lockResult = await this.redisService.setnx(lockKey, lockValue, 10);
+      if(!lockResult) {
+        throw new BadRequestException('Lock acquisition failed');
+      }
+      if(createOrderDto.operation === OrderOperation.BUY) {
+        // frozen amount
+        await this.accountService.frozenAmountAndBalance(account.id, createOrderDto.quantity * createOrderDto.price);
+      } else {
+        // frozen quantity
+        await this.positionService.frozenSymbolQuantity(account.id, createOrderDto.symbol, createOrderDto.quantity);
+      }
       const order = this.orderRepository.create({
         ...createOrderDto,
         dealQuantity: 0,
@@ -51,6 +71,7 @@ export class OrderService extends BaseService<Order> {
       throw error;
     } finally {
       await queryRunner.release();
+      await this.redisService.del(lockKey);
     }
   }
 
