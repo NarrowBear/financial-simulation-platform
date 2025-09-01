@@ -58,7 +58,8 @@ export class OrderService extends BaseService<Order> {
         unitPrice = createOrderDto.price;
       }
       if(createOrderDto.orderType === OrderType.MARKET) {
-        // get middle price
+        // get middle price, get highest price and lowest price
+        const selectSql = `SELECT p`
         
         unitPrice = createOrderDto.maxSlippage ? createOrderDto.maxSlippage : 0;
       }
@@ -77,7 +78,6 @@ export class OrderService extends BaseService<Order> {
       });
       await queryRunner.manager.save(Order, order);
       await queryRunner.commitTransaction();
-      
       return order;
     } catch (error) {
       await queryRunner.rollbackTransaction();

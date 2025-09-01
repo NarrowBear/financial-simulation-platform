@@ -58,6 +58,9 @@ export class Order {
   })
   status: OrderStatus;
 
+  @Column({ name: 'max_slippage', nullable: true, comment: 'Max slippage' })
+  maxSlippage: number;
+
   @CreateDateColumn({ name: 'created_time' })
   createdTime: Date;
 
