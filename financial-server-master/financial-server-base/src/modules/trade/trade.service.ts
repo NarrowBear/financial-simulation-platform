@@ -23,6 +23,30 @@ export class TradeService extends BaseService<TradeRecord> {
     }
 
     /**
+     * Get trade records price
+     * @param symbol 
+     * @returns 
+     */
+    async getTradeRecordsPrice(symbol: number): Promise<number> {
+        const searchSql = `
+            SELECT IF(count(*) > 0, IF(count(*) > 1, sum(unit_price) / 2, unit_price), 0) AS estimated_price 
+            FROM (
+            SELECT sum(price) / sum(trade_quantity) AS unit_price FROM trade_record 
+            WHERE symbol = ${symbol} and order_type = ${OrderOperation.BUY}
+            ORDER BY created_time DESC
+            limit 20
+            UNION ALL
+            SELECT sum(price) / sum(trade_quantity) AS unit_price FROM trade_record 
+            WHERE symbol = ${symbol} and order_type = ${OrderOperation.SELL}
+            ORDER BY created_time DESC
+            limit 20
+            )
+        `;
+        const tradeRecords = await this.tradeRecordRepository.query(searchSql);
+        return tradeRecords.estimated_price;
+    }
+
+    /**
      * MatchMarketing Operation
      * 1. select all orders from order table with status = 'pending' and symbol = 'symbol'
      * 2. group by order.type(sell, buy)
