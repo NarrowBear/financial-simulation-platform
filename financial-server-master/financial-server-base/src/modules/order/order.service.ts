@@ -88,4 +88,42 @@ export class OrderService extends BaseService<Order> {
     }
   }
 
+  /**
+   * getEstimatedPrice, use Middle price strategy(VWAP)
+   * @param symbol 
+   * @param quantity 
+   */
+  async getEstimatedPrice(symbol: string): Promise<number> {
+    const orderBookPrice = await this..getOrderBookPrice(symbol);
+    
+  }
+
+  /**
+   * getOrderBookPrice, use order book price strategy
+   * @param symbol 
+   * @returns 
+   */
+  async getOrderBookPrice(symbol: number): Promise<number> {
+    const searchSql = 
+    `
+      SELECT IF(count(*) > 0, IF(count(*) > 1, sum(price) / 2, price), 0) AS estimated_price
+      FROM (
+      SELECT SUM(price * quantity - deal_quantity) / SUM(quantity - deal_quantity) AS price
+      FROM \`order\` 
+      WHERE symbol = ${symbol} AND status = ${OrderStatus.PENDING} AND operation = ${OrderOperation.BUY}
+      ORDER BY update_time DESC
+      limit 20
+      UNION ALL
+      SELECT SUM(price * quantity - deal_quantity) / SUM(quantity - deal_quantity) AS price
+      FROM order 
+      WHERE symbol = ${symbol} AND status = ${OrderStatus.PENDING} AND operation = ${OrderOperation.SELL}
+      ORDER BY update_time DESC
+      limit 20
+      )
+    `;
+    const orderBookData = await this.orderRepository.query(searchSql);
+    
+    return orderBookData[0].estimated_price;
+  }
+
 } 
