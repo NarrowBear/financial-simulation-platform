@@ -56,7 +56,7 @@ export class TradeService extends BaseService<TradeRecord> {
      * 5. update order status to 'matched'
      * 6. update trade record status to 'success'
      */
-    async matchMarketing(symbol: string): Promise<void> {
+    async matchMarketing(symbol: number): Promise<void> {
         // add lock, lock the symbol
         const lockKey = `trade:lock:${symbol}`;
         const lockValue = uuidv4();
@@ -67,7 +67,7 @@ export class TradeService extends BaseService<TradeRecord> {
         try {
             const pendingOrders = await this.orderService.findBy({
                 status: OrderStatus.PENDING,
-                symbol: Number(symbol)
+                symbol: symbol
             });
             const buyOrders = pendingOrders.filter(order => order.operation === OrderOperation.BUY).sort((a, b) => b.price - a.price);
             const sellOrders = pendingOrders.filter(order => order.operation === OrderOperation.SELL).sort((a, b) => a.price - b.price);

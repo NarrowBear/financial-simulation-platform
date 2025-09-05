@@ -10,6 +10,8 @@ import { AccountService } from '../account/account.service';
 import { PositionService } from '../position/position.service';
 import { v4 as uuidv4 } from 'uuid';
 import { RedisService } from '../../common/service/redis.service';
+import { TradeService } from '../trade/trade.service';
+import { SymbolService } from '../symbol/symbol.service';
 
 @Injectable()
 export class OrderService extends BaseService<Order> {
@@ -18,6 +20,8 @@ export class OrderService extends BaseService<Order> {
     private orderRepository: Repository<Order>,
     private accountService: AccountService,
     private positionService: PositionService,
+    private tradeService: TradeService,
+    private symbolService: SymbolService,
     private redisService: RedisService,
   ) {
     super(orderRepository);
@@ -58,15 +62,11 @@ export class OrderService extends BaseService<Order> {
         unitPrice = createOrderDto.price;
       }
       if(createOrderDto.orderType === OrderType.MARKET) {
-        // get middle price, get highest price and lowest price
-        const selectSql = `SELECT p`
-        
-        unitPrice = createOrderDto.maxSlippage ? createOrderDto.maxSlippage : 0;
+        unitPrice = await this.getEstimatedPrice(createOrderDto.symbol);
       }
       if(createOrderDto.operation === OrderOperation.BUY) {
-
         // frozen amount
-        await this.accountService.frozenAmountAndBalance(account.id, createOrderDto.quantity * createOrderDto.price);
+        await this.accountService.frozenAmountAndBalance(account.id, createOrderDto.quantity * unitPrice);
       } else {
         // frozen quantity
         await this.positionService.frozenSymbolQuantity(account.id, createOrderDto.symbol, createOrderDto.quantity);
@@ -85,6 +85,8 @@ export class OrderService extends BaseService<Order> {
     } finally {
       await queryRunner.release();
       await this.redisService.del(lockKey);
+      // after create order, trigger match marketing
+      await this.tradeService.matchMarketing(createOrderDto.symbol);  
     }
   }
 
@@ -93,8 +95,20 @@ export class OrderService extends BaseService<Order> {
    * @param symbol 
    * @param quantity 
    */
-  async getEstimatedPrice(symbol: string): Promise<number> {
-    const orderBookPrice = await this..getOrderBookPrice(symbol);
+  async getEstimatedPrice(symbol: number): Promise<number> {
+    const orderBookPrice = await this.getOrderBookPrice(symbol);
+    // if order book price is not 0, return order book price
+    if(orderBookPrice && orderBookPrice > 0) {
+      return orderBookPrice;
+    }
+    // if trade records price is not 0, return trade records price
+    const tradeRecordsPrice = await this.tradeService.getTradeRecordsPrice(symbol);
+    if(tradeRecordsPrice && tradeRecordsPrice > 0) {
+      return tradeRecordsPrice;
+    }
+    // if order book price and trade records price are  0, use default price
+    const { lastPrice } = await this.symbolService.findOne({ symbol });
+    return lastPrice;
     
   }
 
