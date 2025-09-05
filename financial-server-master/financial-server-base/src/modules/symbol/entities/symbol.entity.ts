@@ -8,12 +8,12 @@ export class Symbol {
   id: number;
 
   @Column({ 
-    type: 'varchar', 
+    type: 'int', 
     length: 16, 
     nullable: true, 
     comment: 'Stock symbol' 
   })
-  symbol: string;
+  symbol: number;
 
   @Column({ 
     name: 'symbol_name',

@@ -4,7 +4,7 @@ import { BaseService } from "../../common/service/base.service";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Order } from "../order/entities/order.entity";
-import { OrderOperation, OrderStatus } from "src/common/enums/order.enums";
+import { OrderOperation, OrderStatus, OrderType } from "src/common/enums/order.enums";
 import { OrderService } from "../order/order.service";
 import { DoubleHeapUtils } from "src/common/utils/double-heap.utils";
 import { RedisService } from "src/common/service/redis.service";
@@ -82,6 +82,13 @@ export class TradeService extends BaseService<TradeRecord> {
                 if(buyOrder === null || sellOrder === null) {
                     break;
                 }
+                // if buy order or sell order is not limit order, then check slippage
+                if(buyOrder.orderType !== OrderType.LIMIT || sellOrder.orderType !== OrderType.LIMIT) {
+                    const slippageResult = await this.slippageCheck(sellOrder, buyOrder);
+                    if(slippageResult) {
+                        break;
+                    }
+                }
                 // buy order available quantity and sell order available quantity
                 const buyAvailableQuantity = buyOrder.quantity - buyOrder.dealQuantity;
                 const sellAvailableQuantity = sellOrder.quantity - sellOrder.dealQuantity;
@@ -131,6 +138,36 @@ export class TradeService extends BaseService<TradeRecord> {
         } finally {
             await this.redisService.releaseLock(lockKey, lockValue);
         }
+    }
+
+    /**
+     * Slippage check
+     * @param sellOrder 
+     * @param buyOrder 
+     * @returns 
+     */
+    async slippageCheck(sellOrder: Order, buyOrder: Order): Promise<any> {
+        let maxBuyPrice = 0, minBuyPrice = 0, maxSellPrice = 0, minSellPrice = 0;
+        let situation = 0;
+        // here has 3 situation:
+        // 1. buy order is market order, sell order is market order
+        // 2. buy order is limit order, sell order is market order
+        // 3. buy order is market order, sell order is limit order
+        if(buyOrder.orderType === OrderType.MARKET && sellOrder.orderType === OrderType.MARKET) {
+            maxBuyPrice = buyOrder.price * (1 + buyOrder.maxSlippage / 100);
+            minBuyPrice = buyOrder.price * (1 - buyOrder.minSlippage / 100);
+            maxSellPrice = sellOrder.price * (1 + sellOrder.maxSlippage / 100);
+            minSellPrice = sellOrder.price * (1 - sellOrder.minSlippage / 100);
+        } else if(buyOrder.orderType === OrderType.LIMIT && sellOrder.orderType === OrderType.MARKET) {
+            maxBuyPrice = buyOrder.price;
+            maxSellPrice = sellOrder.price * (1 + sellOrder.maxSlippage / 100);
+            minSellPrice = sellOrder.price * (1 - sellOrder.minSlippage / 100);
+        } else if(buyOrder.orderType === OrderType.MARKET && sellOrder.orderType === OrderType.LIMIT) {
+            maxBuyPrice = buyOrder.price * (1 + buyOrder.maxSlippage / 100);
+            minBuyPrice = buyOrder.price * (1 - buyOrder.minSlippage / 100);
+            maxSellPrice = sellOrder.price;
+        }
+        
     }
 
     /**
