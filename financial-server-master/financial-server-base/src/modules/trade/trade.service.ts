@@ -85,8 +85,8 @@ export class TradeService extends BaseService<TradeRecord> {
                 }
                 // if buy order or sell order is not limit order, then check slippage
                 if(buyOrder.orderType !== OrderType.LIMIT || sellOrder.orderType !== OrderType.LIMIT) {
-                    const slippageResult = await this.slippageCheck(sellOrder, buyOrder);
-                    if(slippageResult) {
+                    const {isMatch, buyPrice, sellPrice} = await this.slippageCheck(sellOrder, buyOrder);
+                    if(isMatch) {
                         break;
                     }
                 }
