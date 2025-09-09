@@ -7,6 +7,7 @@ import { OrderType } from "src/common/enums/order.enums";
 import { v4 as uuidv4 } from 'uuid';
 import { RedisService } from "src/common/service/redis.service";
 import { Position } from "../position/entities/position.entity";
+import { Order } from "../order/entities/order.entity";
 
 @Injectable()
 export class AccountService extends BaseService<Account> {
@@ -42,5 +43,34 @@ export class AccountService extends BaseService<Account> {
         account.balance += frozenAmount;
         await this.accountRepository.update(accountId, {frozen: account.frozen, balance: account.balance});
         return true;
+    }
+
+    /**
+     * Transfer amount and quantity
+     * @param buyOrder 
+     * @param sellOrder 
+     * @param buyPrice 
+     * @param sellPrice 
+     * @returns 
+     */
+    async transferAmountAndQuantity(buyOrder: Order, sellOrder: Order, buyPrice: number, sellQuantity: number): Promise<boolean> {
+        const buyLock = `account:lock:${buyOrder.accountId}`;
+        const sellLock = `account:lock:${sellOrder.accountId}`;
+        const buyLockValue = uuidv4();
+        const sellLockValue = uuidv4();
+        const buyLockResult = await this.redisService.setnx(buyLock, buyLockValue, 10);
+        const sellLockResult = await this.redisService.setnx(sellLock, sellLockValue, 10);
+        if(!buyLockResult || !sellLockResult) {
+            throw new Error('Lock acquisition failed');
+        }
+        try {
+            const buyAccount = await this.accountRepository.findOne({ where: { id: buyOrder.accountId } });
+            const sellAccount = await this.accountRepository.findOne({ where: { id: sellOrder.accountId } });
+            if(!buyAccount || !sellAccount) {
+                throw new Error('Account not found');
+            }
+            buyAccount.balance += buyPrice * sellQuantity;
+        }
+
     }
 }

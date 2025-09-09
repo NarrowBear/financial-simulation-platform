@@ -9,7 +9,8 @@ import { OrderService } from "../order/order.service";
 import { DoubleHeapUtils } from "src/common/utils/double-heap.utils";
 import { RedisService } from "src/common/service/redis.service";
 import { v4 as uuidv4 } from 'uuid';
-import { min } from "rxjs";
+import { SlippageService } from "./slippage.service";
+import { AccountService } from "../account/account.service";
 
 @Injectable()
 export class TradeService extends BaseService<TradeRecord> {
@@ -19,6 +20,8 @@ export class TradeService extends BaseService<TradeRecord> {
         @InjectRepository(Order)
         private readonly orderService: OrderService,
         private readonly redisService: RedisService,
+        private readonly slippageService: SlippageService,
+        private readonly accountService: AccountService,
     ) {
         super(tradeRecordRepository);
     }
@@ -83,22 +86,44 @@ export class TradeService extends BaseService<TradeRecord> {
                 if(buyOrder === null || sellOrder === null) {
                     break;
                 }
+                if(buyOrder.accountId === sellOrder.accountId) {
+                    buyHeap.extract(true);
+                    sellHeap.extract(false);
+                    continue;
+                }
+                let buyPrice = buyOrder.price, sellPrice = sellOrder.price;
+                let isSlippage: boolean = false;
                 // if buy order or sell order is not limit order, then check slippage
                 if(buyOrder.orderType !== OrderType.LIMIT || sellOrder.orderType !== OrderType.LIMIT) {
                     const {isMatch, buyPrice, sellPrice} = await this.slippageCheck(sellOrder, buyOrder);
                     if(isMatch) {
                         break;
+                    isSlippage = true;
+                    const { isMatch, buyPrice: slippageBuyPrice, sellPrice: slippageSellPrice, extract } = await this.slippageService.slippageCheck(sellOrder, buyOrder);
+                    if(!isMatch) {
+                        if(extract === 1) {
+                            buyHeap.extract(true);
+                        } else {
+                            sellHeap.extract(false);
+                        }
+                        continue;
                     }
+                    buyPrice = slippageBuyPrice;
+                    sellPrice = slippageSellPrice;
                 }
                 // buy order available quantity and sell order available quantity
                 const buyAvailableQuantity = buyOrder.quantity - buyOrder.dealQuantity;
                 const sellAvailableQuantity = sellOrder.quantity - sellOrder.dealQuantity;
                 let sellStatus: OrderStatus = OrderStatus.PENDING, buyStatus: OrderStatus = OrderStatus.PENDING;
+                
                 // when buy order price is greater than or equal to sell order price, then match the order
                 if (buyOrder.price >= sellOrder.price) {
+                    if(!isSlippage) {
+                        buyPrice = sellOrder.price;
+                    }
                     // the first situation, buy order price is greater than sell order price,
                     if(buyAvailableQuantity > sellAvailableQuantity) {
-                        const result = await this.createTradeRecord(buyOrder, sellOrder, true);
+                        const result = await this.createTradeRecord(buyOrder, buyPrice, sellOrder, sellPrice, true);
                         if(result) {
                             sellHeap.extract(false);
                             buyOrder.dealQuantity += sellAvailableQuantity;
@@ -107,7 +132,7 @@ export class TradeService extends BaseService<TradeRecord> {
                             buyStatus = OrderStatus.PARTIAL_FILLED;
                         }
                     } else if (buyAvailableQuantity < sellAvailableQuantity) {
-                        const result = await this.createTradeRecord(buyOrder, sellOrder, false);
+                        const result = await this.createTradeRecord(buyOrder, buyPrice, sellOrder, sellPrice, false);
                         if(result) {
                             buyHeap.extract(true);
                             sellOrder.dealQuantity += buyAvailableQuantity;
@@ -116,7 +141,7 @@ export class TradeService extends BaseService<TradeRecord> {
                             buyStatus = OrderStatus.FILLED;
                         }
                     } else {
-                        const result = await this.createTradeRecord(buyOrder, sellOrder, false);
+                        const result = await this.createTradeRecord(buyOrder, buyPrice, sellOrder, sellPrice, false);
                         if(result) {
                             buyHeap.extract(true);
                             sellHeap.extract(false);
@@ -128,7 +153,8 @@ export class TradeService extends BaseService<TradeRecord> {
                     }
                     await this.updateOrderStatus(buyOrder, buyOrder.dealQuantity, buyStatus);
                     await this.updateOrderStatus(sellOrder, sellOrder.dealQuantity, sellStatus);
-                    
+                    // after update order status, release amount
+                    await this.accountService.transferAmountAndQuantity(buyOrder, sellOrder, buyPrice, Math.min(buyAvailableQuantity, sellAvailableQuantity));
                 } else {
                     break;
                 }
@@ -141,81 +167,6 @@ export class TradeService extends BaseService<TradeRecord> {
         }
     }
 
-    /**
-     * Slippage check
-     * @param sellOrder 
-     * @param buyOrder 
-     * @returns 
-     */
-    async slippageCheck(sellOrder: Order, buyOrder: Order): Promise<any> {
-        let maxBuyPrice = 0, minBuyPrice = 0, maxSellPrice = 0, minSellPrice = 0;
-        let situation = 0;
-        // here has 3 situation:
-        // 1. buy order is market order, sell order is market order
-        // 2. buy order is limit order, sell order is market order
-        // 3. buy order is market order, sell order is limit order
-        if(buyOrder.orderType === OrderType.MARKET && sellOrder.orderType === OrderType.MARKET) {
-            situation = 1;
-            maxBuyPrice = buyOrder.price * (1 + buyOrder.maxSlippage / 100);
-            minBuyPrice = buyOrder.price;
-            maxSellPrice = sellOrder.maxSlippage;
-            minSellPrice = sellOrder.price * (1 - sellOrder.maxSlippage / 100);
-        } else if(buyOrder.orderType === OrderType.LIMIT && sellOrder.orderType === OrderType.MARKET) {
-            situation = 2;
-            minBuyPrice = buyOrder.price;
-            maxSellPrice = sellOrder.price * (1 - sellOrder.maxSlippage / 100);
-            minSellPrice = sellOrder.price;
-        } else if(buyOrder.orderType === OrderType.MARKET && sellOrder.orderType === OrderType.LIMIT) {
-            situation = 3;
-            maxBuyPrice = buyOrder.price * (1 + buyOrder.maxSlippage / 100);
-            minSellPrice = sellOrder.price;
-        }
-        const result = await this.slippage(situation, maxBuyPrice, minBuyPrice, maxSellPrice, minSellPrice, sellOrder, buyOrder);
-        return result;
-    }
-
-    /**
-     * Slippage check
-     * @param situation 
-     * @param maxBuyPrice 
-     * @param minBuyPrice 
-     * @param maxSellPrice 
-     * @param minSellPrice 
-     * @param sellOrder 
-     * @param buyOrder 
-     */
-    async slippage(situation: number, maxBuyPrice: number, minBuyPrice: number, maxSellPrice: number, minSellPrice: number, sellOrder: Order, buyOrder: Order): Promise<any> {
-        const result = {
-            isMatch: false,
-            buyPrice: 0,
-            sellPrice: 0
-        };
-        if(situation === 1) {
-            // need to check the price is in the range of maxBuyPrice and minBuyPrice
-            if(minBuyPrice <= maxSellPrice && maxBuyPrice >= minSellPrice) {
-                result.isMatch = true;
-                result.buyPrice = Math.max(minBuyPrice, minSellPrice);
-                result.sellPrice = Math.min(maxBuyPrice, maxSellPrice);
-                const middlePrice = (result.buyPrice + result.sellPrice) / 2;
-                result.buyPrice = middlePrice;
-                result.sellPrice = middlePrice;
-            }
-        } else if (situation === 2) {
-            if(minBuyPrice >= minSellPrice) {
-                result.isMatch = true;
-                result.buyPrice = minBuyPrice;
-                result.sellPrice = minBuyPrice;
-            }
-        } else if (situation === 3) {
-            if(maxBuyPrice >= minSellPrice) {
-                result.isMatch = true;
-                result.buyPrice = minSellPrice;
-                result.sellPrice = minSellPrice;
-            }
-        }
-        return result;
-    }
-
     /**-+
      * Create trade record
      * @param buyOrder 
@@ -223,13 +174,13 @@ export class TradeService extends BaseService<TradeRecord> {
      * @param isBuyGreaterThanSell 
      * @returns 
      */
-    async createTradeRecord(buyOrder: Order, sellOrder: Order, isBuyGreaterThanSell: boolean): Promise<boolean> {
+    async createTradeRecord(buyOrder: Order, buyPrice: number, sellOrder: Order, sellPrice: number, isBuyGreaterThanSell: boolean): Promise<boolean> {
         const buyTradeRecord = new TradeRecord(), sellTradeRecord = new TradeRecord();
         buyTradeRecord.accountId = buyOrder.accountId;
         buyTradeRecord.symbol = buyOrder.symbol;
         buyTradeRecord.orderId = buyOrder.id;
         buyTradeRecord.orderType = OrderOperation.BUY;
-        buyTradeRecord.price = sellOrder.price;
+        buyTradeRecord.price = buyPrice;
         buyTradeRecord.createdTime = new Date();
         buyTradeRecord.updateTime = new Date();
         if(isBuyGreaterThanSell) {
@@ -243,7 +194,7 @@ export class TradeService extends BaseService<TradeRecord> {
         sellTradeRecord.symbol = sellOrder.symbol;
         sellTradeRecord.orderId = sellOrder.id;;
         sellTradeRecord.orderType = OrderOperation.SELL;
-        sellTradeRecord.price = sellOrder.price;
+        sellTradeRecord.price = sellPrice;
         sellTradeRecord.createdTime = new Date();
         sellTradeRecord.updateTime = new Date();
         await this.tradeRecordRepository.insert([buyTradeRecord, sellTradeRecord]);
