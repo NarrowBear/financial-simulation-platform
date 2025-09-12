@@ -4,42 +4,51 @@ import { Card, CardBody } from "@heroui/card";
 import { Link } from "@heroui/link";
 import NextLink from "next/link";
 import clsx from "clsx";
+import { usePathname } from "next/navigation";
 
 interface SidebarProps {
   className?: string;
 }
 
 export const Sidebar = ({ className }: SidebarProps) => {
+  const pathname = usePathname();
+  
   const menuItems = [
     {
-      title: "Dashboard",
-      href: "/",
+      title: "Overview",
+      href: "/market",
       icon: "📊",
-      isActive: true,
+      isActive: pathname === "/market",
     },
     {
-      title: "My Portfolio",
-      href: "/portfolio",
-      icon: "📁",
-      isActive: false,
-    },
-    {
-      title: "Order History",
-      href: "/orders",
-      icon: "📋",
-      isActive: false,
-    },
-    {
-      title: "Reports",
-      href: "/reports",
+      title: "Watchlist",
+      href: "/market/watchlist",
       icon: "📈",
-      isActive: false,
+      isActive: pathname === "/market/watchlist",
     },
     {
-      title: "Settings",
-      href: "/settings",
-      icon: "⚙️",
-      isActive: false,
+      title: "Sectors",
+      href: "/market/sectors",
+      icon: "🏢",
+      isActive: pathname === "/market/sectors",
+    },
+    {
+      title: "Screener",
+      href: "/market/screener",
+      icon: "🔍",
+      isActive: pathname === "/market/screener",
+    },
+    {
+      title: "Top Movers",
+      href: "/market/top-movers",
+      icon: "📈",
+      isActive: pathname === "/market/top-movers",
+    },
+    {
+      title: "Calendar",
+      href: "/market/calendar",
+      icon: "📅",
+      isActive: pathname === "/market/calendar",
     },
   ];
 

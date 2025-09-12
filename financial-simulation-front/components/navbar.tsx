@@ -18,6 +18,7 @@ import { link as linkStyles } from "@heroui/theme";
 import NextLink from "next/link";
 import clsx from "clsx";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
@@ -35,6 +36,7 @@ import {
 export const Navbar = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const { user, isLoggedIn, login, signup, logout } = useAuth();
+  const pathname = usePathname();
 
   const handleLogin = async (email: string, password: string) => {
     await login(email, password);
@@ -75,7 +77,10 @@ export const Navbar = () => {
             <NextLink
               className={clsx(
                 linkStyles({ color: "foreground" }),
-                "data-[active=true]:text-primary data-[active=true]:font-medium border-b-2 border-blue-600 text-blue-600 font-medium"
+                "data-[active=true]:text-primary data-[active=true]:font-medium transition-colors",
+                pathname === "/"
+                  ? "border-b-2 border-blue-600 text-blue-600 font-medium"
+                  : "hover:text-blue-600"
               )}
               color="foreground"
               href="/"
@@ -87,7 +92,10 @@ export const Navbar = () => {
             <NextLink
               className={clsx(
                 linkStyles({ color: "foreground" }),
-                "data-[active=true]:text-primary data-[active=true]:font-medium hover:text-blue-600"
+                "data-[active=true]:text-primary data-[active=true]:font-medium transition-colors",
+                pathname.startsWith("/market")
+                  ? "border-b-2 border-blue-600 text-blue-600 font-medium"
+                  : "hover:text-blue-600"
               )}
               color="foreground"
               href="/market"
@@ -99,7 +107,10 @@ export const Navbar = () => {
             <NextLink
               className={clsx(
                 linkStyles({ color: "foreground" }),
-                "data-[active=true]:text-primary data-[active=true]:font-medium hover:text-blue-600"
+                "data-[active=true]:text-primary data-[active=true]:font-medium transition-colors",
+                pathname.startsWith("/portfolio")
+                  ? "border-b-2 border-blue-600 text-blue-600 font-medium"
+                  : "hover:text-blue-600"
               )}
               color="foreground"
               href="/portfolio"
@@ -111,7 +122,10 @@ export const Navbar = () => {
             <NextLink
               className={clsx(
                 linkStyles({ color: "foreground" }),
-                "data-[active=true]:text-primary data-[active=true]:font-medium hover:text-blue-600"
+                "data-[active=true]:text-primary data-[active=true]:font-medium transition-colors",
+                pathname.startsWith("/trade")
+                  ? "border-b-2 border-blue-600 text-blue-600 font-medium"
+                  : "hover:text-blue-600"
               )}
               color="foreground"
               href="/trade"
@@ -123,7 +137,10 @@ export const Navbar = () => {
             <NextLink
               className={clsx(
                 linkStyles({ color: "foreground" }),
-                "data-[active=true]:text-primary data-[active=true]:font-medium hover:text-blue-600"
+                "data-[active=true]:text-primary data-[active=true]:font-medium transition-colors",
+                pathname.startsWith("/education")
+                  ? "border-b-2 border-blue-600 text-blue-600 font-medium"
+                  : "hover:text-blue-600"
               )}
               color="foreground"
               href="/education"
@@ -135,7 +152,10 @@ export const Navbar = () => {
             <NextLink
               className={clsx(
                 linkStyles({ color: "foreground" }),
-                "data-[active=true]:text-primary data-[active=true]:font-medium hover:text-blue-600"
+                "data-[active=true]:text-primary data-[active=true]:font-medium transition-colors",
+                pathname.startsWith("/support")
+                  ? "border-b-2 border-blue-600 text-blue-600 font-medium"
+                  : "hover:text-blue-600"
               )}
               color="foreground"
               href="/support"
