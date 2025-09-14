@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardBody, CardHeader } from "@heroui/card";
 
 interface MarketData {
@@ -13,64 +11,65 @@ interface MarketData {
 const marketData: MarketData[] = [
   {
     name: "S&P 500",
-    value: "4,447.59",
-    change: "+0.5.76",
-    changePercent: "1.04%",
-    isPositive: true,
-  },
-  {
-    name: "NASDAQ",
-    value: "13,794.04",
-    change: "+118.14",
-    changePercent: "0.86%",
-    isPositive: true,
+    value: "4,274.51",
+    change: "-32",
+    changePercent: "-0.83%",
+    isPositive: false,
   },
   {
     name: "Dow Jones",
-    value: "34,245.09",
-    change: "+156.10",
-    changePercent: "0.46%",
+    value: "33,912.44",
+    change: "+338",
+    changePercent: "-1.01%",
+    isPositive: false,
+  },
+  {
+    name: "Nasdaq",
+    value: "13,418.78",
+    change: "-29.09",
+    changePercent: "+0.22%",
     isPositive: true,
   },
 ];
 
-export const MarketOverview = () => {
+export default function MarketOverview() {
   return (
     <Card className="w-full">
-      <CardHeader className="pb-2">
-        <h3 className="text-lg font-semibold text-gray-900">Market Overview</h3>
+      <CardHeader className="text-white rounded-t-lg" style={{ backgroundColor: '#338EF7' }}>
+        <h3 className="text-lg font-semibold text-white">Market Overview</h3>
       </CardHeader>
-      <CardBody className="pt-0">
+      <CardBody className="pt-4">
         <div className="space-y-4">
-          {marketData.map((item, index) => (
-            <div key={index} className="flex items-center justify-between">
+          {marketData.map((market) => (
+            <div key={market.name} className="flex items-center justify-between">
               <div className="flex-1">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-600">
-                    {item.name}
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-sm text-gray-600">
+                    {market.name}
                   </span>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-sm font-medium ${
-                        item.isPositive ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {item.change}
-                    </span>
-                    <span
-                      className={`text-sm font-medium ${
-                        item.isPositive ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      ({item.changePercent})
-                    </span>
+                  <div className="w-16 h-8 bg-blue-100 rounded flex items-center justify-center">
+                    <svg width="48" height="16" viewBox="0 0 48 16" className="w-12 h-4">
+                      <path
+                        d="M2 12 L8 8 L14 10 L20 6 L26 4 L32 7 L38 5 L44 3"
+                        stroke="#3b82f6"
+                        strokeWidth="1.5"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                   </div>
                 </div>
-                <div className="text-lg font-semibold text-gray-900">
-                  {item.value}
+                <div className="text-2xl font-bold text-gray-900 mt-1">
+                  {market.value}
                 </div>
-                <div className="w-full h-8 bg-gray-100 rounded mt-2 flex items-center justify-center">
-                  <div className="w-full h-2 bg-gradient-to-r from-green-400 to-green-600 rounded-full opacity-60"></div>
+              </div>
+              <div className="text-right">
+                <div className={`text-sm font-medium ${market.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                  {market.change}
+                </div>
+                <div className={`text-sm ${market.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                  {market.changePercent}
                 </div>
               </div>
             </div>
@@ -79,4 +78,4 @@ export const MarketOverview = () => {
       </CardBody>
     </Card>
   );
-};
+}

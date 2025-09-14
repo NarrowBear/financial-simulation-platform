@@ -1,58 +1,58 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Next.js + HeroUI",
-  description: "Make beautiful websites regardless of your design experience.",
+  name: "Financial Simulation Platform",
+  description: "Advanced financial simulation and trading platform.",
   navItems: [
     {
       label: "Home",
       href: "/",
     },
     {
-      label: "Docs",
-      href: "/docs",
+      label: "Market",
+      href: "/market",
     },
     {
-      label: "Pricing",
-      href: "/pricing",
+      label: "Portfolio",
+      href: "/portfolio",
     },
     {
-      label: "Blog",
-      href: "/blog",
+      label: "Trade",
+      href: "/trade",
     },
     {
-      label: "About",
-      href: "/about",
+      label: "Education",
+      href: "/education",
+    },
+    {
+      label: "Support",
+      href: "/support",
     },
   ],
   navMenuItems: [
     {
-      label: "Profile",
-      href: "/profile",
-    },
-    {
       label: "Dashboard",
-      href: "/dashboard",
+      href: "/",
     },
     {
-      label: "Projects",
-      href: "/projects",
+      label: "My Portfolio",
+      href: "/portfolio",
     },
     {
-      label: "Team",
-      href: "/team",
+      label: "Order History",
+      href: "/orders",
     },
     {
-      label: "Calendar",
-      href: "/calendar",
+      label: "Reports",
+      href: "/reports",
     },
     {
       label: "Settings",
       href: "/settings",
     },
     {
-      label: "Help & Feedback",
-      href: "/help-feedback",
+      label: "Help & Support",
+      href: "/support",
     },
     {
       label: "Logout",

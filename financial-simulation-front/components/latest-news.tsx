@@ -1,45 +1,39 @@
-"use client";
-
 import { Card, CardBody, CardHeader } from "@heroui/card";
 
 interface NewsItem {
   title: string;
-  timeAgo: string;
+  date?: string;
 }
 
 const newsItems: NewsItem[] = [
-  {
-    title: "Fed expected to raise interest rates",
-    timeAgo: "2h ago",
-  },
-  {
-    title: "Tech stocks rally as market rebounds",
-    timeAgo: "4h ago",
-  },
-  {
-    title: "Global all prices decline amid slowdown",
-    timeAgo: "5h ago",
-  },
+  { title: "Headlines on Financial Market" },
+  { title: "Investors Eye Key Economic Indicators" },
+  { title: "Tech Stocks Rally Amid Strong Earnings" },
+  { title: "Global Markets React to Policy Changes", date: "MAY 24" },
 ];
 
-export const LatestNews = () => {
+export default function LatestNews() {
   return (
     <Card className="w-full">
-      <CardHeader className="pb-2">
-        <h3 className="text-lg font-semibold text-gray-900">Latest News</h3>
+      <CardHeader className="text-white rounded-t-lg" style={{ backgroundColor: '#338EF7' }}>
+        <h3 className="text-lg font-semibold text-white">Latest News</h3>
       </CardHeader>
-      <CardBody className="pt-0">
+      <CardBody className="pt-4">
         <div className="space-y-3">
           {newsItems.map((item, index) => (
             <div key={index} className="py-2 border-b border-gray-100 last:border-b-0">
-              <div className="text-sm font-medium text-gray-900 mb-1">
-                {item.title}
+              <div className="flex items-start gap-2">
+                {item.date && (
+                  <span className="text-xs text-gray-500 font-medium whitespace-nowrap">
+                    {item.date} -
+                  </span>
+                )}
+                <p className="text-sm text-gray-900">{item.title}</p>
               </div>
-              <div className="text-xs text-gray-500">{item.timeAgo}</div>
             </div>
           ))}
         </div>
       </CardBody>
     </Card>
   );
-};
+}
