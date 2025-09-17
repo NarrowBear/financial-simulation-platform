@@ -9,7 +9,6 @@ export class Symbol {
 
   @Column({ 
     type: 'int', 
-    length: 16, 
     nullable: true, 
     comment: 'Stock symbol' 
   })

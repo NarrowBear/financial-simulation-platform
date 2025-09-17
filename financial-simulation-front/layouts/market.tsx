@@ -1,55 +1,23 @@
-import { useState } from "react";
-import { Card, CardBody } from "@heroui/card";
-import { Button } from "@heroui/button";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { 
-  ChartBarIcon, 
-  ListBulletIcon, 
-  BuildingOfficeIcon,
-  FunnelIcon,
-  ArrowTrendingUpIcon,
-  CalendarIcon
+  MagnifyingGlassIcon,
+  SunIcon,
+  UserIcon,
+  ChartBarIcon
 } from "@heroicons/react/24/outline";
 
 import { Head } from "./head";
-import { Navbar } from "@/components/navbar";
 
 interface MarketLayoutProps {
   children: React.ReactNode;
 }
 
-const sidebarItems = [
-  {
-    label: "Overview",
-    href: "/market",
-    icon: ChartBarIcon,
-  },
-  {
-    label: "Watchlist",
-    href: "/market/watchlist",
-    icon: ListBulletIcon,
-  },
-  {
-    label: "Sectors",
-    href: "/market/sectors",
-    icon: BuildingOfficeIcon,
-  },
-  {
-    label: "Screener",
-    href: "/market/screener",
-    icon: FunnelIcon,
-  },
-  {
-    label: "Top Movers",
-    href: "/market/top-movers",
-    icon: ArrowTrendingUpIcon,
-  },
-  {
-    label: "Calendar",
-    href: "/market/calendar",
-    icon: CalendarIcon,
-  },
+const tabItems = [
+  { label: "Watchlist", href: "/market" },
+  { label: "Sectors", href: "/market/sectors" },
+  { label: "Screener", href: "/market/screener" },
+  { label: "Top Movers", href: "/market/top-movers" },
 ];
 
 export default function MarketLayout({ children }: MarketLayoutProps) {
@@ -57,43 +25,67 @@ export default function MarketLayout({ children }: MarketLayoutProps) {
   const currentPath = router.asPath;
 
   return (
-    <div className="relative flex flex-col h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900">
       <Head />
-      <Navbar />
       
-      <div className="flex flex-1">
-        {/* Sidebar */}
-        <div className="w-64 bg-white shadow-lg">
-          <div className="p-6">
-            <nav className="space-y-2">
-              {sidebarItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = currentPath === item.href;
-                
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive 
-                        ? 'bg-blue-50 text-blue-600 font-medium border-r-2 border-blue-600' 
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
+      {/* Header */}
+      <header className="bg-gray-900 border-b border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Left side - Logo and Navigation */}
+            <div className="flex items-center space-x-8">
+              <div className="flex items-center space-x-2">
+                <ChartBarIcon className="w-8 h-8 text-blue-400" />
+                <span className="text-xl font-semibold text-white">Market</span>
+              </div>
+              <nav className="hidden md:flex space-x-8">
+                <Link href="/" className="text-gray-300 hover:text-white transition-colors">Home</Link>
+                <Link href="/market" className="text-white border-b-2 border-blue-400 pb-1">Market</Link>
+                <Link href="/portfolio" className="text-gray-300 hover:text-white transition-colors">Portfolio</Link>
+                <Link href="/trade" className="text-gray-300 hover:text-white transition-colors">Trade</Link>
+                <Link href="/education" className="text-gray-300 hover:text-white transition-colors">Education</Link>
+                <Link href="/support" className="text-gray-300 hover:text-white transition-colors">Support</Link>
+              </nav>
+            </div>
+
+            {/* Right side - Icons */}
+            <div className="flex items-center space-x-4">
+              <MagnifyingGlassIcon className="w-6 h-6 text-white cursor-pointer hover:text-blue-400 transition-colors" />
+              <SunIcon className="w-6 h-6 text-white cursor-pointer hover:text-blue-400 transition-colors" />
+              <UserIcon className="w-6 h-6 text-white cursor-pointer hover:text-blue-400 transition-colors" />
+            </div>
           </div>
         </div>
+      </header>
 
-        {/* Main Content */}
-        <main className="flex-1 p-6 overflow-y-auto">
-          {children}
-        </main>
+      {/* Sub Navigation Tabs */}
+      <div className="bg-gray-900 border-b border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="flex space-x-8">
+            {tabItems.map((item) => {
+              const isActive = currentPath === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    isActive 
+                      ? 'border-blue-400 text-blue-400' 
+                      : 'border-transparent text-gray-300 hover:text-white hover:border-gray-300'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
       </div>
+
+      {/* Main Content */}
+      <main className="w-[90%] mx-auto py-6">
+        {children}
+      </main>
     </div>
   );
 }

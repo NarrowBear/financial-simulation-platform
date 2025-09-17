@@ -36,14 +36,19 @@ export class PositionService {
     return true;
   }
 
+  /**
+   * Create position
+   * @param createPositionDto 
+   * @returns 
+   */
   async create(createPositionDto: CreatePositionDto): Promise<Position> {
     // Check if position already exists for the same account and symbol
     const existingPosition = await this.positionRepository.findOne({
-      where: {
-        accountId: createPositionDto.accountId,
-        symbol: createPositionDto.symbol,
-      },
-    });
+        where: {
+          accountId: createPositionDto.accountId,
+          symbol: Number(createPositionDto.symbol),
+        },
+      });
 
     if (existingPosition) {
       throw new BadRequestException('Position record already exists for this account and symbol');
@@ -51,104 +56,20 @@ export class PositionService {
 
     const position = this.positionRepository.create({
       ...createPositionDto,
+      symbol: createPositionDto.symbol,
       quantity: createPositionDto.quantity || 0,
       frozenQuantity: createPositionDto.frozenQuantity || 0,
     });
 
-    return await this.positionRepository.save(position);
-  }
-
-  async findAll(): Promise<Position[]> {
-    return await this.positionRepository.find({
-      order: { updateTime: 'DESC' }
-    });
-  }
-
-  async findByAccountId(accountId: number): Promise<Position[]> {
-    return await this.positionRepository.find({
-      where: { accountId },
-      order: { updateTime: 'DESC' }
-    });
-  }
-
-  async findBySymbol(symbol: string): Promise<Position[]> {
-    return await this.positionRepository.find({
-      where: { symbol },
-      order: { updateTime: 'DESC' }
-    });
-  }
-
-  async findOne(id: number): Promise<Position> {
-    const position = await this.positionRepository.findOne({ where: { id } });
-    if (!position) {
-      throw new NotFoundException(`Position ID ${id} does not exist`);
-    }
-    return position;
-  }
-
-  async findByAccountAndSymbol(accountId: number, symbol: string): Promise<Position | null> {
-    return await this.positionRepository.findOne({
-      where: { accountId, symbol }
-    });
-  }
-
-  async update(id: number, updatePositionDto: UpdatePositionDto): Promise<Position> {
-    const position = await this.findOne(id);
-    Object.assign(position, updatePositionDto);
-    return await this.positionRepository.save(position);
-  }
-
-  async remove(id: number): Promise<void> {
-    const position = await this.findOne(id);
-    await this.positionRepository.remove(position);
-  }
-
-  // Increase position quantity
-  async increaseQuantity(accountId: number, symbol: string, quantity: number): Promise<Position> {
-    let position = await this.findByAccountAndSymbol(accountId, symbol);
-    
-    if (!position) {
-      // If position record doesn't exist, create a new one
-      position = await this.create({
-        accountId,
-        symbol,
-        quantity,
-        frozenQuantity: 0,
-      });
-    } else {
-      position.quantity += quantity;
-      await this.positionRepository.save(position);
-    }
-    
-    return position;
-  }
-
-  // Decrease position quantity
-  async decreaseQuantity(accountId: number, symbol: string, quantity: number): Promise<Position> {
-    const position = await this.findByAccountAndSymbol(accountId, symbol);
-    
-    if (!position) {
-      throw new BadRequestException('Position record does not exist');
-    }
-    
-    if (position.quantity < quantity) {
-      throw new BadRequestException('Insufficient position quantity');
-    }
-    
-    position.quantity -= quantity;
-    
-    // If position quantity becomes 0, remove the record
-    if (position.quantity === 0) {
-      await this.positionRepository.remove(position);
-      return position;
-    }
-    
-    return await this.positionRepository.save(position);
+    const savedPosition = await this.positionRepository.save(position);
+    return savedPosition;
   }
 
   // Freeze position quantity
-  async freezeQuantity(accountId: number, symbol: string, quantity: number): Promise<Position> {
-    const position = await this.findByAccountAndSymbol(accountId, symbol);
+  async freezeQuantity(accountId: number, symbol: number, quantity: number): Promise<Position> {
+    const position = await this.positionRepository.findOne({
+      where: { accountId, symbol }
+    });
     
     if (!position) {
       throw new BadRequestException('Position record does not exist');
@@ -165,8 +86,10 @@ export class PositionService {
   }
 
   // Unfreeze position quantity
-  async unfreezeQuantity(accountId: number, symbol: string, quantity: number): Promise<Position> {
-    const position = await this.findByAccountAndSymbol(accountId, symbol);
+  async unfreezeQuantity(accountId: number, symbol: number, quantity: number): Promise<Position> {
+    const position = await this.positionRepository.findOne({
+      where: { accountId, symbol }
+    });
     
     if (!position) {
       throw new BadRequestException('Position record does not exist');

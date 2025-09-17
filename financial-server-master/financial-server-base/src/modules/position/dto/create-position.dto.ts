@@ -7,7 +7,7 @@ export class CreatePositionDto {
 
   @IsNotEmpty({ message: 'Symbol cannot be empty' })
   @IsString({ message: 'Symbol must be a string' })
-  symbol: string;
+  symbol: number;
 
   @IsOptional()
   @IsNumber({}, { message: 'Position quantity must be a number' })

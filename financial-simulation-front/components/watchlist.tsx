@@ -1,82 +1,114 @@
-import { Card, CardBody, CardHeader } from "@heroui/card";
-
 interface Stock {
   symbol: string;
-  price: string;
+  company: string;
+  lastPrice: string;
   change: string;
   changePercent: string;
+  weekHigh: string;
+  weekLow: string;
   isPositive: boolean;
 }
 
 const stocks: Stock[] = [
   {
     symbol: "AAPL",
-    price: "145,96",
-    change: "+1,34",
-    changePercent: "+0,93%",
+    company: "Apple Inc.",
+    lastPrice: "343.89",
+    change: "+0.50%",
+    changePercent: "+0.51%",
+    weekHigh: "54,350",
+    weekLow: "64,780",
     isPositive: true,
   },
   {
     symbol: "MSFT",
-    price: "296,24",
-    change: "+2,58",
-    changePercent: "+0,96%",
+    company: "Microsoft Corp",
+    lastPrice: "349.88",
+    change: "+0.35%",
+    changePercent: "+1.07%",
+    weekHigh: "55,120",
+    weekLow: "55,150",
     isPositive: true,
   },
   {
-    symbol: "TSLA",
-    price: "280,93",
-    change: "-1,84",
-    changePercent: "-0,65%",
-    isPositive: false,
-  },
-  {
     symbol: "GOOGL",
-    price: "134,36",
-    change: "+1,86",
-    changePercent: "+0,52%",
+    company: "Alphabet Inc.",
+    lastPrice: "391.88",
+    change: "+0.040",
+    changePercent: "+1.17%",
+    weekHigh: "14,330",
+    weekLow: "43,245",
     isPositive: true,
   },
   {
     symbol: "AMZN",
-    price: "142,43",
-    change: "+0,86",
-    changePercent: "+9,61%",
+    company: "Amazon.com Inc.",
+    lastPrice: "363.17",
+    change: "-0.52%",
+    changePercent: "-0.30%",
+    weekHigh: "106,960",
+    weekLow: "151,130",
+    isPositive: false,
+  },
+  {
+    symbol: "TSLA",
+    company: "Tesla Inc.",
+    lastPrice: "344.58",
+    change: "+01.45",
+    changePercent: "+3.04%",
+    weekHigh: "358.10",
+    weekLow: "330.20",
     isPositive: true,
   },
 ];
 
 export default function Watchlist() {
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Watchlist</h3>
-      </CardHeader>
-      <CardBody className="pt-0">
-        <div className="space-y-0">
-          {/* Header */}
-          <div className="grid grid-cols-4 gap-4 text-sm font-medium text-gray-600 pb-3 border-b border-gray-200">
-            <div>Symbol</div>
-            <div>Price</div>
-            <div>Change</div>
-            <div>% Change</div>
-          </div>
-          
-          {/* Stock Rows */}
-          {stocks.map((stock, index) => (
-            <div key={index} className="grid grid-cols-4 gap-4 py-3 text-sm border-b border-gray-100 last:border-b-0">
-              <div className="font-medium text-gray-900">{stock.symbol}</div>
-              <div className="text-gray-700">{stock.price}</div>
-              <div className={`font-medium ${stock.isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                {stock.change}
-              </div>
-              <div className={`font-medium ${stock.isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                {stock.changePercent}
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardBody>
-    </Card>
+    <div className="bg-gray-800 rounded-lg shadow-sm border border-gray-700">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-700">
+              <th className="text-left py-4 px-6 text-sm font-medium text-gray-400">Symbol</th>
+              <th className="text-left py-4 px-6 text-sm font-medium text-gray-400">Company</th>
+              <th className="text-right py-4 px-6 text-sm font-medium text-gray-400">Last Price</th>
+              <th className="text-right py-4 px-6 text-sm font-medium text-gray-400">Change</th>
+              <th className="text-right py-4 px-6 text-sm font-medium text-gray-400">% Change</th>
+              <th className="text-right py-4 px-6 text-sm font-medium text-gray-400">52 Week High:Low</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stocks.map((stock, index) => (
+              <tr key={index} className="border-b border-gray-700 last:border-b-0 hover:bg-gray-700">
+                <td className="py-4 px-6">
+                  <div className="font-medium text-white">{stock.symbol}</div>
+                </td>
+                <td className="py-4 px-6">
+                  <div className="text-gray-300">{stock.company}</div>
+                </td>
+                <td className="py-4 px-6 text-right">
+                  <div className="font-medium text-white">{stock.lastPrice}</div>
+                </td>
+                <td className="py-4 px-6 text-right">
+                  <div className={`font-medium ${stock.isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                    {stock.change}
+                  </div>
+                </td>
+                <td className="py-4 px-6 text-right">
+                  <div className={`font-medium ${stock.isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                    {stock.changePercent}
+                  </div>
+                </td>
+                <td className="py-4 px-6 text-right">
+                  <div className="text-sm text-gray-400">
+                    {stock.weekHigh} - {stock.weekLow}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }

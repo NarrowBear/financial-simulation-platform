@@ -1,28 +1,32 @@
-import DefaultLayout from "@/layouts/default";
-import MarketOverview from "@/components/market-overview";
-import PortfolioSummary from "@/components/portfolio-summary";
-import QuickTrade from "@/components/quick-trade";
-import OrdersTable from "@/components/orders-table";
-import LatestNews from "@/components/latest-news";
+import MainLayout from "@/layouts/main";
+import PortfolioSummaryCard from "@/components/portfolio-summary-card";
+import QuickActionsCard from "@/components/quick-actions-card";
+import PerformanceChartCard from "@/components/performance-chart-card";
+import RecentActivityCard from "@/components/recent-activity-card";
+import MarketNewsCard from "@/components/market-news-card";
 
-export default function IndexPage() {
+export default function HomePage() {
   return (
-    <DefaultLayout>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 px-4">
-        {/* Left Column */}
-        <div className="space-y-6">
-          <MarketOverview />
-          <PortfolioSummary />
-          <OrdersTable />
-          <LatestNews />
+    <MainLayout>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Left Column - Portfolio and Performance */}
+        <div className="lg:col-span-2 space-y-6">
+          <PortfolioSummaryCard />
+          <PerformanceChartCard />
         </div>
 
-        {/* Right Column */}
-        <div className="space-y-6">
-          <QuickTrade />
-          <LatestNews />
+        {/* Right Column - Quick Actions and Activity */}
+        <div className="lg:col-span-2 space-y-6">
+          <QuickActionsCard />
+          <RecentActivityCard />
         </div>
       </div>
-    </DefaultLayout>
+
+      {/* Bottom Row - Market News */}
+      <div className="mt-6">
+        <MarketNewsCard />
+      </div>
+    </MainLayout>
   );
 }

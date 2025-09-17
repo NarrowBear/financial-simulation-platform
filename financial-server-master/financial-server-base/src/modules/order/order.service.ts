@@ -107,7 +107,11 @@ export class OrderService extends BaseService<Order> {
       return tradeRecordsPrice;
     }
     // if order book price and trade records price are  0, use default price
-    const { lastPrice } = await this.symbolService.findOne({ symbol });
+    const symbolData = await this.symbolService.findOne({ symbol });
+    if(!symbolData) {
+      throw new BadRequestException('Symbol not found');
+    }
+    const { lastPrice } = symbolData;
     return lastPrice;
     
   }

@@ -95,12 +95,11 @@ export class TradeService extends BaseService<TradeRecord> {
                 let isSlippage: boolean = false;
                 // if buy order or sell order is not limit order, then check slippage
                 if(buyOrder.orderType !== OrderType.LIMIT || sellOrder.orderType !== OrderType.LIMIT) {
-                    const {isMatch, buyPrice, sellPrice} = await this.slippageCheck(sellOrder, buyOrder);
-                    if(isMatch) {
-                        break;
-                    isSlippage = true;
-                    const { isMatch, buyPrice: slippageBuyPrice, sellPrice: slippageSellPrice, extract } = await this.slippageService.slippageCheck(sellOrder, buyOrder);
-                    if(!isMatch) {
+                    const { isMatch: slippageIsMatch, buyPrice: slippageBuyPrice, sellPrice: slippageSellPrice, extract } = await this.slippageService.slippageCheck(sellOrder, buyOrder);
+                    if(slippageIsMatch) {
+                        buyPrice = slippageBuyPrice;
+                        sellPrice = slippageSellPrice;
+                    } else {
                         if(extract === 1) {
                             buyHeap.extract(true);
                         } else {
@@ -108,9 +107,9 @@ export class TradeService extends BaseService<TradeRecord> {
                         }
                         continue;
                     }
-                    buyPrice = slippageBuyPrice;
-                    sellPrice = slippageSellPrice;
+                    isSlippage = true;
                 }
+                
                 // buy order available quantity and sell order available quantity
                 const buyAvailableQuantity = buyOrder.quantity - buyOrder.dealQuantity;
                 const sellAvailableQuantity = sellOrder.quantity - sellOrder.dealQuantity;

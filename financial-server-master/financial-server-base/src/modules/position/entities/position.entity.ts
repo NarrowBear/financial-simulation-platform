@@ -9,8 +9,7 @@ export class Position {
   accountId: number;
 
   @Column({ 
-    type: 'int', 
-    length: 16, 
+    type: 'int',
     nullable: true, 
     comment: 'Stock symbol' 
   })
