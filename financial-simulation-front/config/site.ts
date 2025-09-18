@@ -1,7 +1,7 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Financial Simulation Platform",
+  name: "Averium",
   description: "Advanced financial simulation and trading platform.",
   navItems: [
     {

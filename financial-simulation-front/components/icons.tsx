@@ -10,15 +10,29 @@ export const Logo: React.FC<IconSvgProps> = ({
   <svg
     fill="none"
     height={size || height}
-    viewBox="0 0 32 32"
+    viewBox="0 0 40 40"
     width={size || height}
     {...props}
   >
+    {/* Averium A Logo - Flat-topped A shape */}
     <path
-      clipRule="evenodd"
-      d="M17.6482 10.1305L15.8785 7.02583L7.02979 22.5499H10.5278L17.6482 10.1305ZM19.8798 14.0457L18.11 17.1983L19.394 19.4511H16.8453L15.1056 22.5499H24.7272L19.8798 14.0457Z"
-      fill="currentColor"
-      fillRule="evenodd"
+      d="M16 8L24 8L32 36L28 36L26.5 32L13.5 32L12 36L8 36L16 8Z"
+      fill="#FF6B6B"
+    />
+    {/* Crossbar of A */}
+    <rect
+      x="15"
+      y="22"
+      width="10"
+      height="3"
+      fill="#FF6B6B"
+    />
+    {/* Internal M structure - two vertical lines and two inward sloping lines */}
+    <path
+      d="M17 16L17 19L19 16L19 19L21 16L21 19L23 16L23 19"
+      stroke="#1F2937"
+      strokeWidth="1.5"
+      fill="none"
     />
   </svg>
 );

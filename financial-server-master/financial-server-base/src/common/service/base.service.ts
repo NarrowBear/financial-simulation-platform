@@ -26,4 +26,8 @@ export class BaseService<T extends ObjectLiteral> {
     async update(id: number, entity: Partial<T>): Promise<any> {
         return await this.respository.update(id, entity);   
     }
+
+    async exists(condition: Partial<T>): Promise<boolean> {
+        return await this.respository.exist(condition);
+    }
 } 

@@ -1,6 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
+import { RegisterDto } from '../account/dto/register-dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class AuthService {
@@ -8,6 +10,29 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly userService: UserService
     ) {}
+
+    async register(body: RegisterDto): Promise<Boolean> {
+        const { phone, password, nickName, avatar, idCard, email, realName } = body;
+        const hasPone = await this.userService.exists({ phone });
+        if(hasPone) {
+            throw new BadRequestException('User already exists');
+        }
+        const hasEmail = await this.userService.exists({ email });
+        if(hasEmail) {
+            throw new BadRequestException('Email already exists');
+        }
+        const hasIdCard = await this.userService.exists({ idCard });
+        if(hasIdCard) {
+            throw new BadRequestException('ID card already exists');
+        }
+        // keep userUin unique
+        let userUin = uuidv4();
+        while(await this.userService.exists({ userUin })) {
+            userUin = uuidv4();
+        }
+        await this.userService.create({ phone, password, nickName, avatar, idCard, email, realName, userUin });
+        return true;
+    }
 
     async login(phone: string, password: string) {
         const user = await this.userService.findOne({ phone, password });

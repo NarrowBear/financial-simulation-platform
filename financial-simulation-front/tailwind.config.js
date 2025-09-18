@@ -14,6 +14,12 @@ const config = {
         sans: ["var(--font-sans)"],
         mono: ["var(--font-mono)"],
       },
+      colors: {
+        coral: {
+          400: '#FF6B6B',
+          500: '#FF6B6B',
+        },
+      },
     },
   },
   darkMode: "class",

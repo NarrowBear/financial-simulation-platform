@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Head } from "./head";
+import { Logo } from "@/components/icons";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -50,8 +51,8 @@ export default function MainLayout({
             {/* Left side - Logo and Navigation */}
             <div className="flex items-center space-x-8">
               <div className="flex items-center space-x-2">
-                <ChartBarIcon className="w-8 h-8 text-blue-400" />
-                <span className="text-xl font-semibold text-white">Market</span>
+                <Logo size={32} className="text-coral-400" />
+                <span className="text-xl font-semibold text-white">Averium</span>
               </div>
               <nav className="hidden md:flex space-x-8">
                 {mainNavItems.map((item) => {

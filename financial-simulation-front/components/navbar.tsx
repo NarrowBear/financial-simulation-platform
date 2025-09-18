@@ -67,10 +67,8 @@ export const Navbar = () => {
       <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
         <NavbarBrand className="gap-3 max-w-fit">
           <NextLink className="flex justify-start items-center gap-2" href="/">
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              <span className="text-blue-600 font-bold text-lg">H</span>
-            </div>
-            <p className="font-bold text-blue-600 text-xl">Home</p>
+            <Logo size={32} className="text-coral-500" />
+            <p className="font-bold text-coral-500 text-xl">Averium</p>
           </NextLink>
         </NavbarBrand>
         <div className="hidden lg:flex gap-6 justify-start ml-8">
