@@ -11,6 +11,7 @@ import {
   Divider,
 } from "@heroui/react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { Logo } from "@/components/icons";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -57,23 +58,21 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
       onClose={onClose}
       size="md"
       classNames={{
-        base: "bg-white",
-        header: "border-b border-gray-200",
+        base: "bg-gray-900 border border-gray-700",
+        header: "border-b border-gray-700",
         body: "py-6",
-        footer: "border-t border-gray-200",
+        footer: "border-t border-gray-700",
       }}
     >
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1">
           <div className="flex items-center justify-center w-full">
-            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-xl">H</span>
-            </div>
+            <Logo size={200} className="text-coral-500" />
           </div>
-          <h2 className="text-2xl font-bold text-center text-gray-900">
-            {mode === "login" ? "Welcome Back" : "Create Account"}
+          <h2 className="text-2xl font-bold text-center text-white">
+            {mode === "login" ? "Welcome Back to Averium" : "Create Your Averium Account"}
           </h2>
-          <p className="text-sm text-gray-600 text-center">
+          <p className="text-sm text-gray-300 text-center">
             {mode === "login" 
               ? "Sign in to your account to continue using financial services" 
               : "Register a new account to start your investment journey"
@@ -92,8 +91,9 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
                   onChange={(e) => handleInputChange("firstName", e.target.value)}
                   isRequired
                   classNames={{
-                    inputWrapper: "border-gray-300",
-                    label: "text-gray-700",
+                    inputWrapper: "border-gray-600 bg-gray-800 data-[focus=true]:bg-gray-800 data-[focus=true]:border-coral-400",
+                    label: "text-gray-300",
+                    input: "text-white placeholder:text-gray-400",
                   }}
                 />
                 <Input
@@ -103,8 +103,9 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
                   onChange={(e) => handleInputChange("lastName", e.target.value)}
                   isRequired
                   classNames={{
-                    inputWrapper: "border-gray-300",
-                    label: "text-gray-700",
+                    inputWrapper: "border-gray-600 bg-gray-800 data-[focus=true]:bg-gray-800 data-[focus=true]:border-coral-400",
+                    label: "text-gray-300",
+                    input: "text-white placeholder:text-gray-400",
                   }}
                 />
               </div>
@@ -118,8 +119,9 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
               onChange={(e) => handleInputChange("email", e.target.value)}
               isRequired
               classNames={{
-                inputWrapper: "border-gray-300",
-                label: "text-gray-700",
+                inputWrapper: "border-gray-600 bg-gray-800 data-[focus=true]:bg-gray-800 data-[focus=true]:border-coral-400",
+                label: "text-gray-300",
+                input: "text-white placeholder:text-gray-400",
               }}
             />
 
@@ -144,8 +146,9 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
                 </button>
               }
               classNames={{
-                inputWrapper: "border-gray-300",
-                label: "text-gray-700",
+                inputWrapper: "border-gray-600 bg-gray-800 data-[focus=true]:bg-gray-800 data-[focus=true]:border-coral-400",
+                label: "text-gray-300",
+                input: "text-white placeholder:text-gray-400",
               }}
             />
 
@@ -169,15 +172,15 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
                 isSelected={formData.agreeToTerms}
                 onValueChange={(checked) => handleInputChange("agreeToTerms", checked)}
                 classNames={{
-                  label: "text-sm text-gray-600",
+                  label: "text-sm text-gray-300",
                 }}
               >
                 I agree to the
-                <a href="#" className="text-blue-600 hover:text-blue-800 ml-1">
+                <a href="#" className="text-coral-400 hover:text-coral-300 ml-1">
                   Terms of Service
                 </a>
                 and
-                <a href="#" className="text-blue-600 hover:text-blue-800 ml-1">
+                <a href="#" className="text-coral-400 hover:text-coral-300 ml-1">
                   Privacy Policy
                 </a>
               </Checkbox>
@@ -187,12 +190,12 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
               <div className="flex items-center justify-between">
                 <Checkbox
                   classNames={{
-                    label: "text-sm text-gray-600",
+                    label: "text-sm text-gray-300",
                   }}
                 >
                   Remember me
                 </Checkbox>
-                <a href="#" className="text-sm text-blue-600 hover:text-blue-800">
+                <a href="#" className="text-sm text-coral-400 hover:text-coral-300">
                   Forgot password?
                 </a>
               </div>
@@ -203,7 +206,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
             <Button
               type="submit"
               className="w-full"
-              style={{ backgroundColor: '#338EF7' }}
+              style={{ backgroundColor: '#FF6B6B' }}
               size="lg"
             >
               {mode === "login" ? "Sign In" : "Sign Up"}
@@ -212,13 +215,13 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
             <Divider className="my-2" />
 
             <div className="text-center">
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-300">
                 {mode === "login" ? "Don't have an account?" : "Already have an account?"}
               </span>
               <button
                 type="button"
                 onClick={() => onModeChange(mode === "login" ? "register" : "login")}
-                className="text-sm text-blue-600 hover:text-blue-800 ml-1 font-medium"
+                className="text-sm text-coral-400 hover:text-coral-300 ml-1 font-medium"
               >
                 {mode === "login" ? "Sign up now" : "Sign in now"}
               </button>

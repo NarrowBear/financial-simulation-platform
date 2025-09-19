@@ -10,30 +10,41 @@ export const Logo: React.FC<IconSvgProps> = ({
   <svg
     fill="none"
     height={size || height}
-    viewBox="0 0 40 40"
+    viewBox="0 0 1000 400"
     width={size || height}
     {...props}
   >
-    {/* Averium A Logo - Flat-topped A shape */}
-    <path
-      d="M16 8L24 8L32 36L28 36L26.5 32L13.5 32L12 36L8 36L16 8Z"
-      fill="#FF6B6B"
-    />
-    {/* Crossbar of A */}
-    <rect
-      x="15"
-      y="22"
-      width="10"
-      height="3"
-      fill="#FF6B6B"
-    />
-    {/* Internal M structure - two vertical lines and two inward sloping lines */}
-    <path
-      d="M17 16L17 19L19 16L19 19L21 16L21 19L23 16L23 19"
-      stroke="#1F2937"
-      strokeWidth="1.5"
-      fill="none"
-    />
+    <defs>
+      <linearGradient id="neonMulti" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#00F5A0"/>
+        <stop offset="100%" stopColor="#00D9F5"/>
+      </linearGradient>
+      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    <rect width="100%" height="100%" fill="#0B0F1A"/>
+    <rect x="120" y="120" width="160" height="160" rx="20"
+          fill="none" stroke="url(#neonMulti)" strokeWidth="14" filter="url(#glow)"/>
+    <line x1="200" y1="80"  x2="200" y2="120" stroke="url(#neonMulti)" strokeWidth="8" filter="url(#glow)"/>
+    <line x1="200" y1="280" x2="200" y2="320" stroke="url(#neonMulti)" strokeWidth="8" filter="url(#glow)"/>
+    <line x1="80"  y1="200" x2="120" y2="200" stroke="url(#neonMulti)" strokeWidth="8" filter="url(#glow)"/>
+    <line x1="280" y1="200" x2="320" y2="200" stroke="url(#neonMulti)" strokeWidth="8" filter="url(#glow)"/>
+    <path d="M140 240 L160 200 L190 220 L220 180 L250 160"
+          fill="none" stroke="url(#neonMulti)" strokeWidth="8" strokeLinecap="round" filter="url(#glow)"/>
+    <polygon points="250,160 268,156 260,176" fill="url(#neonMulti)" filter="url(#glow)"/>
+    <text x="140" y="190" fontSize="28" fontWeight="700" fill="url(#neonMulti)" filter="url(#glow)">$</text>
+    <text x="230" y="190" fontSize="28" fontWeight="700" fill="url(#neonMulti)" filter="url(#glow)">€</text>
+    <text x="160" y="250" fontSize="28" fontWeight="700" fill="url(#neonMulti)" filter="url(#glow)">¥</text>
+    <text x="210" y="250" fontSize="28" fontWeight="700" fill="url(#neonMulti)" filter="url(#glow)">₿</text>
+    <text x="400" y="200" fontSize="92" fontWeight="800"
+          fill="url(#neonMulti)" letterSpacing="4" filter="url(#glow)">AVERIUM</text>
+    <text x="404" y="250" fontSize="28" fontWeight="600"
+          fill="#9fb3c8" letterSpacing="6">SIMULATED FINANCE</text>
   </svg>
 );
 

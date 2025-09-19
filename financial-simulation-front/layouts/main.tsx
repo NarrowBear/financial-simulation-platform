@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useState } from "react";
 import { 
   MagnifyingGlassIcon,
   SunIcon,
@@ -9,6 +10,7 @@ import {
 
 import { Head } from "./head";
 import { Logo } from "@/components/icons";
+import AuthModal from "@/components/auth-modal";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -39,6 +41,13 @@ export default function MainLayout({
 }: MainLayoutProps) {
   const router = useRouter();
   const currentPath = router.asPath;
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+
+  const handleOpenAuthModal = (mode: "login" | "register") => {
+    setAuthMode(mode);
+    setIsAuthModalOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -51,7 +60,7 @@ export default function MainLayout({
             {/* Left side - Logo and Navigation */}
             <div className="flex items-center space-x-8">
               <div className="flex items-center space-x-2">
-                <Logo size={32} className="text-coral-400" />
+                <Logo size={120} className="text-coral-400" />
                 <span className="text-xl font-semibold text-white">Averium</span>
               </div>
               <nav className="hidden md:flex space-x-8">
@@ -79,9 +88,12 @@ export default function MainLayout({
 
             {/* Right side - Icons */}
             <div className="flex items-center space-x-4">
-              <MagnifyingGlassIcon className="w-6 h-6 text-white cursor-pointer hover:text-blue-400 transition-colors" />
-              <SunIcon className="w-6 h-6 text-white cursor-pointer hover:text-blue-400 transition-colors" />
-              <UserIcon className="w-6 h-6 text-white cursor-pointer hover:text-blue-400 transition-colors" />
+              {/* <MagnifyingGlassIcon className="w-6 h-6 text-white cursor-pointer hover:text-blue-400 transition-colors" />
+              <SunIcon className="w-6 h-6 text-white cursor-pointer hover:text-blue-400 transition-colors" /> */}
+              <UserIcon 
+                className="w-6 h-6 text-white cursor-pointer hover:text-blue-400 transition-colors" 
+                onClick={() => handleOpenAuthModal("login")}
+              />
             </div>
           </div>
         </div>
@@ -117,6 +129,14 @@ export default function MainLayout({
       <main className="w-[90%] mx-auto py-6">
         {children}
       </main>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        mode={authMode}
+        onModeChange={setAuthMode}
+      />
     </div>
   );
 }

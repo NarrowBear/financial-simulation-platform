@@ -67,7 +67,7 @@ export const Navbar = () => {
       <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
         <NavbarBrand className="gap-3 max-w-fit">
           <NextLink className="flex justify-start items-center gap-2" href="/">
-            <Logo size={32} className="text-coral-500" />
+            <Logo size={120} className="text-coral-500" />
             <p className="font-bold text-coral-500 text-xl">Averium</p>
           </NextLink>
         </NavbarBrand>
@@ -127,8 +127,11 @@ export const Navbar = () => {
       </NavbarContent>
 
       <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
-        <div className="w-8 h-8 bg-transparent border-2 border-gray-700 rounded-full flex items-center justify-center">
-          <UserIcon className="w-5 h-5 text-gray-700" />
+        <div 
+          className="w-8 h-8 bg-transparent border-2 border-gray-700 rounded-full flex items-center justify-center cursor-pointer hover:border-blue-600 hover:bg-blue-50 transition-colors"
+          onClick={() => handleOpenAuthModal("login")}
+        >
+          <UserIcon className="w-5 h-5 text-gray-700 hover:text-blue-600" />
         </div>
         <NavbarMenuToggle />
       </NavbarContent>
@@ -153,6 +156,26 @@ export const Navbar = () => {
               </Link>
             </NavbarMenuItem>
           ))}
+        </div>
+        
+        {/* Mobile Auth Buttons */}
+        <div className="mx-4 mt-4 flex flex-col gap-3">
+          <Button
+            variant="ghost"
+            size="lg"
+            onClick={() => handleOpenAuthModal("login")}
+            className="text-gray-700 hover:text-blue-600 justify-start"
+          >
+            Sign In
+          </Button>
+          <Button
+            size="lg"
+            onClick={() => handleOpenAuthModal("register")}
+            style={{ backgroundColor: '#338EF7' }}
+            className="text-white justify-start"
+          >
+            Sign Up
+          </Button>
         </div>
       </NavbarMenu>
 
