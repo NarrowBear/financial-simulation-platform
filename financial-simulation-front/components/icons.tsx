@@ -27,7 +27,6 @@ export const Logo: React.FC<IconSvgProps> = ({
         </feMerge>
       </filter>
     </defs>
-    <rect width="100%" height="100%" fill="#0B0F1A"/>
     <rect x="120" y="120" width="160" height="160" rx="20"
           fill="none" stroke="url(#neonMulti)" strokeWidth="14" filter="url(#glow)"/>
     <line x1="200" y1="80"  x2="200" y2="120" stroke="url(#neonMulti)" strokeWidth="8" filter="url(#glow)"/>
@@ -41,9 +40,9 @@ export const Logo: React.FC<IconSvgProps> = ({
     <text x="230" y="190" fontSize="28" fontWeight="700" fill="url(#neonMulti)" filter="url(#glow)">€</text>
     <text x="160" y="250" fontSize="28" fontWeight="700" fill="url(#neonMulti)" filter="url(#glow)">¥</text>
     <text x="210" y="250" fontSize="28" fontWeight="700" fill="url(#neonMulti)" filter="url(#glow)">₿</text>
-    <text x="400" y="200" fontSize="92" fontWeight="800"
+    <text x="340" y="230" fontSize="92" fontWeight="800"
           fill="url(#neonMulti)" letterSpacing="4" filter="url(#glow)">AVERIUM</text>
-    <text x="404" y="250" fontSize="28" fontWeight="600"
+    <text x="350" y="270" fontSize="32" fontWeight="600"
           fill="#9fb3c8" letterSpacing="6">SIMULATED FINANCE</text>
   </svg>
 );

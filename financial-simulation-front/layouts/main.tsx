@@ -60,8 +60,7 @@ export default function MainLayout({
             {/* Left side - Logo and Navigation */}
             <div className="flex items-center space-x-8">
               <div className="flex items-center space-x-2">
-                <Logo size={120} className="text-coral-400" />
-                <span className="text-xl font-semibold text-white">Averium</span>
+                <Logo size={180} className="text-coral-400" />
               </div>
               <nav className="hidden md:flex space-x-8">
                 {mainNavItems.map((item) => {

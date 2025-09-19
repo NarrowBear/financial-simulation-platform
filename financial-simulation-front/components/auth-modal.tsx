@@ -65,14 +65,14 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
       }}
     >
       <ModalContent>
-        <ModalHeader className="flex flex-col gap-1">
+        <ModalHeader className="flex flex-col gap-0">
           <div className="flex items-center justify-center w-full">
-            <Logo size={200} className="text-coral-500" />
+            <Logo size={300} className="text-coral-500" />
           </div>
-          <h2 className="text-2xl font-bold text-center text-white">
+          <h2 className="text-2xl font-bold text-center text-white mt-2">
             {mode === "login" ? "Welcome Back to Averium" : "Create Your Averium Account"}
           </h2>
-          <p className="text-sm text-gray-300 text-center">
+          <p className="text-sm text-gray-300 text-center mt-1">
             {mode === "login" 
               ? "Sign in to your account to continue using financial services" 
               : "Register a new account to start your investment journey"
