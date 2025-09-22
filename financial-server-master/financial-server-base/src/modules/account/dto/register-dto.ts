@@ -15,5 +15,6 @@ export class RegisterDto {
     @IsString({ message: 'Email must be a string' })
     @IsEmail(undefined, { message: 'Invalid email' })
     email: string;
-    realName: string;
+    firstName: string;
+    lastName: string;
 }

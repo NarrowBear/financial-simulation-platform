@@ -12,6 +12,7 @@ import {
 } from "@heroui/react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { Logo } from "@/components/icons";
+import { authApi } from "@/lib/api";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
     confirmPassword: "",
     firstName: "",
     lastName: "",
+    phone: "",
     agreeToTerms: false,
   });
 
@@ -38,14 +40,22 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (mode === "login") {
-      console.log("Login:", { email: formData.email, password: formData.password });
-    } else {
-      console.log("Register:", formData);
+    try {
+      if (mode === "login") {
+        const response = await authApi.login(formData.email, formData.password);
+        console.log("登录成功:", response);
+        onClose();
+      } else {
+        const response = await authApi.register(formData);
+        console.log("注册成功:", response);
+        onClose();
+      }
+    } catch (error) {
+      console.error("认证失败:", error);
+      alert("认证失败，请检查您的凭据");
     }
-    onClose();
   };
 
   const togglePasswordVisibility = () => {
@@ -65,14 +75,14 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
       }}
     >
       <ModalContent>
-        <ModalHeader className="flex flex-col gap-0">
+        <ModalHeader className="flex flex-col gap-0 py-1">
           <div className="flex items-center justify-center w-full">
-            <Logo size={300} className="text-coral-500" />
+            <Logo width={300} height={100} className="text-coral-500" />
           </div>
-          <h2 className="text-2xl font-bold text-center text-white mt-2">
+          <h2 className="text-xl font-bold text-center text-white">
             {mode === "login" ? "Welcome Back to Averium" : "Create Your Averium Account"}
           </h2>
-          <p className="text-sm text-gray-300 text-center mt-1">
+          <p className="text-xs text-gray-300 text-center">
             {mode === "login" 
               ? "Sign in to your account to continue using financial services" 
               : "Register a new account to start your investment journey"

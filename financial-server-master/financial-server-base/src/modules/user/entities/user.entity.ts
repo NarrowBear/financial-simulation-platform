@@ -26,8 +26,11 @@ export class User {
     @Column()
     email: string;
     
-    @Column({ name: 'real_name'})
-    realName: string;
+    @Column({ name: 'first_name'})
+    firstName: string;
+
+    @Column({ name: 'last_name'})
+    lastName: string;
     
     @Column({ name: 'created_time'})
     createdTime: Date;

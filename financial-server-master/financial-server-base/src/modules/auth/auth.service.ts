@@ -12,7 +12,7 @@ export class AuthService {
     ) {}
 
     async register(body: RegisterDto): Promise<Boolean> {
-        const { phone, password, nickName, avatar, idCard, email, realName } = body;
+        const { phone, password, nickName, avatar, idCard, email, firstName, lastName } = body;
         const hasPone = await this.userService.exists({ phone });
         if(hasPone) {
             throw new BadRequestException('User already exists');
@@ -30,7 +30,9 @@ export class AuthService {
         while(await this.userService.exists({ userUin })) {
             userUin = uuidv4();
         }
-        await this.userService.create({ phone, password, nickName, avatar, idCard, email, realName, userUin });
+        const createdTime = new Date();
+        const updatedTime = new Date();
+        await this.userService.create({ phone, password, nickName, avatar, idCard, email, firstName, lastName, userUin, createdTime, updatedTime });
         return true;
     }
 
@@ -43,7 +45,8 @@ export class AuthService {
             phone: user.phone, 
             nickName: user.nickName, 
             userUin: user.userUin,
-            realName: user.realName,
+            firstName: user.firstName,
+            lastName: user.lastName,
         };
         return {
             access_token: this.jwtService.sign(payload, { expiresIn: '1h' }),

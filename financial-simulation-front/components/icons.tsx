@@ -3,15 +3,16 @@ import * as React from "react";
 import { IconSvgProps } from "@/types";
 
 export const Logo: React.FC<IconSvgProps> = ({
-  size = 36,
+  size = 180,
+  width,
   height,
   ...props
 }) => (
   <svg
     fill="none"
-    height={size || height}
+    height={height || size}
     viewBox="0 0 1000 400"
-    width={size || height}
+    width={width || size}
     {...props}
   >
     <defs>
