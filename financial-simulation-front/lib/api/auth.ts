@@ -3,8 +3,8 @@ import axios from '../axios';
 // 认证相关API
 export const authApi = {
   // 用户登录
-  login: (email: string, password: string) => 
-    axios.post('/auth/login', { email, password }),
+  login: (account: string, password: string) => 
+    axios.post('/auth/login', { account, password }),
   
   // 用户注册
   register: (payload: any) => 

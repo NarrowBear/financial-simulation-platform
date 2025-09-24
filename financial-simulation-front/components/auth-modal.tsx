@@ -24,6 +24,7 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthModalProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
+    account: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -40,17 +41,31 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
     }));
   };
 
+  const handleClose = () => {
+    setFormData({
+      account: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      firstName: "",
+      lastName: "",
+      phone: "",
+      agreeToTerms: false,
+    });
+    onClose();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (mode === "login") {
-        const response = await authApi.login(formData.email, formData.password);
+        const response = await authApi.login(formData.account, formData.password);
         console.log("登录成功:", response);
-        onClose();
+        handleClose();
       } else {
         const response = await authApi.register(formData);
         console.log("注册成功:", response);
-        onClose();
+        handleClose();
       }
     } catch (error) {
       console.error("认证失败:", error);
@@ -65,7 +80,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       size="md"
       classNames={{
         base: "bg-gray-900 border border-gray-700",
@@ -96,46 +111,61 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
               <div className="grid grid-cols-2 gap-4">
                 <Input
                   label="First Name"
+                  color="default"
                   placeholder="Enter your first name"
                   value={formData.firstName}
                   onChange={(e) => handleInputChange("firstName", e.target.value)}
                   isRequired
-                  classNames={{
-                    inputWrapper: "border-gray-600 bg-gray-800 data-[focus=true]:bg-gray-800 data-[focus=true]:border-coral-400",
-                    label: "text-gray-300",
-                    input: "text-white placeholder:text-gray-400",
-                  }}
                 />
                 <Input
                   label="Last Name"
+                  color="default"
                   placeholder="Enter your last name"
                   value={formData.lastName}
                   onChange={(e) => handleInputChange("lastName", e.target.value)}
                   isRequired
-                  classNames={{
-                    inputWrapper: "border-gray-600 bg-gray-800 data-[focus=true]:bg-gray-800 data-[focus=true]:border-coral-400",
-                    label: "text-gray-300",
-                    input: "text-white placeholder:text-gray-400",
-                  }}
                 />
+                
               </div>
             )}
 
-            <Input
-              type="email"
-              label="Email Address"
-              placeholder="Enter your email address"
-              value={formData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
-              isRequired
-              classNames={{
-                inputWrapper: "border-gray-600 bg-gray-800 data-[focus=true]:bg-gray-800 data-[focus=true]:border-coral-400",
-                label: "text-gray-300",
-                input: "text-white placeholder:text-gray-400",
-              }}
-            />
+            {mode === "register" && (
+              <div className="flex flex-col gap-4">
+                <Input
+                  color="default"
+                  type="email"
+                  label="Email Address"
+                  placeholder="Enter your email address"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  isRequired
+                />
+                <Input
+                  color="default"
+                  type="phone"
+                  label="Phone Number"
+                  placeholder="Enter your phone number"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange("phone", e.target.value)}
+                  isRequired
+                />
+              </div>
 
+            )}
+
+            {mode === "login" && (
+              <Input
+                color="default"
+                label="Account"
+                placeholder="Enter your email address or phone number"
+                value={formData.account}
+                onChange={(e) => handleInputChange("account", e.target.value)}
+                isRequired
+              />
+            ) }
+            
             <Input
+              color="default"
               type={showPassword ? "text" : "password"}
               label="Password"
               placeholder="Enter your password"
@@ -155,11 +185,6 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
                   )}
                 </button>
               }
-              classNames={{
-                inputWrapper: "border-gray-600 bg-gray-800 data-[focus=true]:bg-gray-800 data-[focus=true]:border-coral-400",
-                label: "text-gray-300",
-                input: "text-white placeholder:text-gray-400",
-              }}
             />
 
             {mode === "register" && (
@@ -170,10 +195,6 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
                 value={formData.confirmPassword}
                 onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
                 isRequired
-                classNames={{
-                  inputWrapper: "border-gray-300",
-                  label: "text-gray-700",
-                }}
               />
             )}
 

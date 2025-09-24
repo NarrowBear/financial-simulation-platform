@@ -1,33 +1,35 @@
 import { Injectable } from "@nestjs/common";
-import { Repository, ObjectLiteral, DeepPartial } from "typeorm";
-
+import { Repository, ObjectLiteral, DeepPartial, FindOptionsWhere } from "typeorm";
 
 @Injectable()
 export class BaseService<T extends ObjectLiteral> {
     constructor(protected readonly respository: Repository<T>) {}
 
     async findAll(): Promise<T[]> {
-        return await this.respository.find();
+        return this.respository.find();
     }
 
-    async findOne(condition: Partial<T>): Promise<T | null> {
-        return await this.respository.findOneBy(condition);
+    async findOne(condition: FindOptionsWhere<T> | FindOptionsWhere<T>[]): Promise<T | null> {
+        if (Array.isArray(condition)) {
+            return this.respository.findOne({ where: condition });
+        }
+        return this.respository.findOneBy(condition);
     }
 
-    async findBy(condition: Partial<T>): Promise<T[]> {
-        return await this.respository.findBy(condition);
+    async findBy(condition: FindOptionsWhere<T> | FindOptionsWhere<T>[]): Promise<T[]> {
+        return this.respository.findBy(condition);
     }
 
     async create(entity: DeepPartial<T>): Promise<T> {
         const newEntity = this.respository.create(entity);
-        return await this.respository.save(newEntity);
+        return this.respository.save(newEntity);
     }
 
     async update(id: number, entity: Partial<T>): Promise<any> {
-        return await this.respository.update(id, entity);   
+        return this.respository.update(id, entity);   
     }
 
-    async exists(condition: Partial<T>): Promise<boolean> {
-        return await this.respository.exist(condition);
+    async exists(condition: FindOptionsWhere<T> | FindOptionsWhere<T>[]): Promise<boolean> {
+        return this.respository.exists({ where: condition });
     }
-} 
+}

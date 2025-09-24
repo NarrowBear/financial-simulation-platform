@@ -13,8 +13,11 @@ export class AuthController {
     }
 
     @Post('login')
-    async login(@Body() body: { phone: string, password: string }): Promise<Response<any>> {
-        return Response.success(await this.authService.login(body.phone, body.password));
+    async login(@Body() body: { account: string, password: string }): Promise<Response<any>> {
+        if(!body.account || !body.password) {
+            return Response.error('Account and password are required', 400);
+        }
+        return Response.success(await this.authService.login(body.account, body.password));
     }
 
     @Post('refresh')

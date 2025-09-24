@@ -13,18 +13,16 @@ export class AuthService {
 
     async register(body: RegisterDto): Promise<Boolean> {
         const { phone, password, nickName, avatar, idCard, email, firstName, lastName } = body;
-        const hasPone = await this.userService.exists({ phone });
-        if(hasPone) {
+        const hasPhone = await this.userService.exists({ phone });
+        if(hasPhone) {
+            console.log('User already exists');
             throw new BadRequestException('User already exists');
         }
         const hasEmail = await this.userService.exists({ email });
         if(hasEmail) {
             throw new BadRequestException('Email already exists');
         }
-        const hasIdCard = await this.userService.exists({ idCard });
-        if(hasIdCard) {
-            throw new BadRequestException('ID card already exists');
-        }
+        
         // keep userUin unique
         let userUin = uuidv4();
         while(await this.userService.exists({ userUin })) {
@@ -36,18 +34,20 @@ export class AuthService {
         return true;
     }
 
-    async login(phone: string, password: string) {
-        const user = await this.userService.findOne({ phone, password });
-        if(!user) {
+    async login(account: string, password: string) {
+        const user = await this.userService.findOne([{ phone: account }, { email: account }]);
+        if(!user || user.password !== password) {
             throw new UnauthorizedException('Invalid credentials');
         }
         const payload = { 
             phone: user.phone, 
             nickName: user.nickName, 
             userUin: user.userUin,
+            email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
         };
+        console.log(payload);
         return {
             access_token: this.jwtService.sign(payload, { expiresIn: '1h' }),
             refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' }),
