@@ -11,6 +11,7 @@ import {
 import { Head } from "./head";
 import { Logo } from "@/components/icons";
 import AuthModal from "@/components/auth-modal";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -18,11 +19,18 @@ interface MainLayoutProps {
   subNavItems?: Array<{ label: string; href: string }>;
 }
 
-const mainNavItems = [
+const allNavItems = [
   { label: "Home", href: "/" },
   { label: "Market", href: "/market" },
   { label: "Portfolio", href: "/portfolio" },
   { label: "Trade", href: "/trade" },
+  { label: "Education", href: "/education" },
+  { label: "Support", href: "/support" },
+];
+
+const publicNavItems = [
+  { label: "Home", href: "/" },
+  { label: "Market", href: "/market" },
   { label: "Education", href: "/education" },
   { label: "Support", href: "/support" },
 ];
@@ -43,11 +51,15 @@ export default function MainLayout({
   const currentPath = router.asPath;
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const { isAuthenticated } = useAuth();
 
   const handleOpenAuthModal = (mode: "login" | "register") => {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
   };
+
+  // 根据认证状态选择菜单项
+  const mainNavItems = isAuthenticated ? allNavItems : publicNavItems;
 
   return (
     <div className="min-h-screen bg-gray-900">

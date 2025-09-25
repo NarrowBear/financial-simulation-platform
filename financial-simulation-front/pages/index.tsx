@@ -1,4 +1,6 @@
+import { useAuth } from "@/contexts/AuthContext";
 import MainLayout from "@/layouts/main";
+import LandingPage from "@/components/landing-page";
 import PortfolioSummaryCard from "@/components/portfolio-summary-card";
 import QuickActionsCard from "@/components/quick-actions-card";
 import PerformanceChartCard from "@/components/performance-chart-card";
@@ -6,6 +8,20 @@ import RecentActivityCard from "@/components/recent-activity-card";
 import MarketNewsCard from "@/components/market-news-card";
 
 export default function HomePage() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LandingPage />;
+  }
+
   return (
     <MainLayout>
       {/* Main Content Grid */}

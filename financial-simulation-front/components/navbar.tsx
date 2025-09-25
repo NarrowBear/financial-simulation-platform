@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import {
   Navbar as HeroUINavbar,
@@ -20,6 +20,7 @@ import clsx from "clsx";
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
 import AuthModal from "@/components/auth-modal";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   TwitterIcon,
   GithubIcon,
@@ -35,6 +36,42 @@ export const Navbar = () => {
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const router = useRouter();
   const currentPath = router.asPath;
+  const { isAuthenticated, logout } = useAuth();
+
+  // 监听登录弹窗事件
+  useEffect(() => {
+    const handleOpenAuthModal = (event: CustomEvent) => {
+      setAuthMode(event.detail.mode);
+      setIsAuthModalOpen(true);
+    };
+
+    window.addEventListener('openAuthModal', handleOpenAuthModal as EventListener);
+    
+    return () => {
+      window.removeEventListener('openAuthModal', handleOpenAuthModal as EventListener);
+    };
+  }, []);
+
+  // 根据登录状态显示不同的导航项
+  const getNavItems = () => {
+    if (isAuthenticated) {
+      return siteConfig.navItems; // 显示所有菜单项
+    } else {
+      return siteConfig.navItems.filter(item => 
+        item.label === "Home" || item.label === "Market" || item.label === "Education" || item.label === "Support"
+      ); // 只显示公开的菜单项
+    }
+  };
+
+  const getNavMenuItems = () => {
+    if (isAuthenticated) {
+      return siteConfig.navMenuItems; // 显示所有移动端菜单项
+    } else {
+      return siteConfig.navMenuItems.filter(item => 
+        item.label === "Dashboard" || item.label === "Help & Support"
+      ); // 只显示公开的移动端菜单项
+    }
+  };
 
   const handleOpenAuthModal = (mode: "login" | "register") => {
     setAuthMode(mode);
@@ -71,7 +108,7 @@ export const Navbar = () => {
           </NextLink>
         </NavbarBrand>
         <div className="hidden lg:flex gap-6 justify-start ml-8">
-          {siteConfig.navItems.map((item) => (
+          {getNavItems().map((item) => (
             <NavbarItem key={item.href}>
               <NextLink
                 className={clsx(
@@ -103,26 +140,41 @@ export const Navbar = () => {
             type="search"
           />
         </NavbarItem>
-        <NavbarItem>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleOpenAuthModal("login")}
-            className="text-gray-700 hover:text-blue-600"
-          >
-            Sign In
-          </Button>
-        </NavbarItem>
-        <NavbarItem>
-          <Button
-            size="sm"
-            onClick={() => handleOpenAuthModal("register")}
-            style={{ backgroundColor: '#338EF7' }}
-            className="text-white"
-          >
-            Sign Up
-          </Button>
-        </NavbarItem>
+        {!isAuthenticated ? (
+          <>
+            <NavbarItem>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleOpenAuthModal("login")}
+                className="text-gray-700 hover:text-blue-600"
+              >
+                Sign In
+              </Button>
+            </NavbarItem>
+            <NavbarItem>
+              <Button
+                size="sm"
+                onClick={() => handleOpenAuthModal("register")}
+                style={{ backgroundColor: '#338EF7' }}
+                className="text-white"
+              >
+                Sign Up
+              </Button>
+            </NavbarItem>
+          </>
+        ) : (
+          <NavbarItem>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={logout}
+              className="text-gray-700 hover:text-red-600"
+            >
+              Logout
+            </Button>
+          </NavbarItem>
+        )}
       </NavbarContent>
 
       <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
@@ -138,17 +190,17 @@ export const Navbar = () => {
       <NavbarMenu>
         {searchInput}
         <div className="mx-4 mt-2 flex flex-col gap-2">
-          {siteConfig.navMenuItems.map((item, index) => (
+          {getNavMenuItems().map((item, index) => (
             <NavbarMenuItem key={`${item}-${index}`}>
               <Link
                 color={
                   index === 2
                     ? "primary"
-                    : index === siteConfig.navMenuItems.length - 1
+                    : index === getNavMenuItems().length - 1
                       ? "danger"
                       : "foreground"
                 }
-                href="#"
+                href={item.href}
                 size="lg"
               >
                 {item.label}
@@ -158,24 +210,37 @@ export const Navbar = () => {
         </div>
         
         {/* Mobile Auth Buttons */}
-        <div className="mx-4 mt-4 flex flex-col gap-3">
-          <Button
-            variant="ghost"
-            size="lg"
-            onClick={() => handleOpenAuthModal("login")}
-            className="text-gray-700 hover:text-blue-600 justify-start"
-          >
-            Sign In
-          </Button>
-          <Button
-            size="lg"
-            onClick={() => handleOpenAuthModal("register")}
-            style={{ backgroundColor: '#338EF7' }}
-            className="text-white justify-start"
-          >
-            Sign Up
-          </Button>
-        </div>
+        {!isAuthenticated ? (
+          <div className="mx-4 mt-4 flex flex-col gap-3">
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => handleOpenAuthModal("login")}
+              className="text-gray-700 hover:text-blue-600 justify-start"
+            >
+              Sign In
+            </Button>
+            <Button
+              size="lg"
+              onClick={() => handleOpenAuthModal("register")}
+              style={{ backgroundColor: '#338EF7' }}
+              className="text-white justify-start"
+            >
+              Sign Up
+            </Button>
+          </div>
+        ) : (
+          <div className="mx-4 mt-4">
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={logout}
+              className="text-gray-700 hover:text-red-600 justify-start"
+            >
+              Logout
+            </Button>
+          </div>
+        )}
       </NavbarMenu>
 
       <AuthModal

@@ -13,6 +13,7 @@ import {
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { Logo } from "@/components/icons";
 import { authApi } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthModalProps) {
+  const { login, register } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     account: "",
@@ -61,10 +63,14 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
       if (mode === "login") {
         const response = await authApi.login(formData.account, formData.password);
         console.log("登录成功:", response);
+        // 使用AuthContext的login函数更新认证状态
+        await login(formData.account, formData.password);
         handleClose();
       } else {
         const response = await authApi.register(formData);
         console.log("注册成功:", response);
+        // 使用AuthContext的register函数更新认证状态
+        await register(formData);
         handleClose();
       }
     } catch (error) {
