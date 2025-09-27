@@ -1,7 +1,9 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Req, Headers, UseInterceptors, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from '../../common/web/response.dto';
 import { RegisterDto } from '../account/dto/register-dto';
+import { JwtAdvancedFilter } from './jwt-advanced.filter';
+import { Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -24,4 +26,15 @@ export class AuthController {
     async refresh(@Body('refresh_token') refreshToken: string): Promise<Response<any>> {
         return Response.success(await this.authService.refreshToken(refreshToken));
     }
+
+    @Get('me')
+    @UseInterceptors(JwtAdvancedFilter)
+    async me(@Req() req: any): Promise<Response<any>> {
+        console.log(req);
+        if (!req.isAuthenticated) {
+            return Response.error('Authentication required', 401);
+        }
+        return Response.success(await this.authService.me(req.user));
+    }
+
 }

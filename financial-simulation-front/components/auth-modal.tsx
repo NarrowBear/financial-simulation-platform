@@ -9,6 +9,7 @@ import {
   Input,
   Checkbox,
   Divider,
+  Alert,
 } from "@heroui/react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { Logo } from "@/components/icons";
@@ -23,8 +24,9 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthModalProps) {
-  const { login, register } = useAuth();
+  const { login, register, refreshUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [formData, setFormData] = useState({
     account: "",
     email: "",
@@ -61,25 +63,25 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
     e.preventDefault();
     try {
       if (mode === "login") {
-        const response = await authApi.login(formData.account, formData.password);
-        console.log("登录成功:", response);
-        // 使用AuthContext的login函数更新认证状态
+        if(formData.account === "" || formData.password === "") {
+          setErrorMessage("Please fill in the account and password");
+          return;
+        }
+        // 使用AuthContext的login函数，它会处理token存储和用户状态更新
         await login(formData.account, formData.password);
         handleClose();
       } else {
-        const response = await authApi.register(formData);
-        console.log("注册成功:", response);
         // 使用AuthContext的register函数更新认证状态
         await register(formData);
         handleClose();
       }
     } catch (error) {
-      console.error("认证失败:", error);
-      alert("认证失败，请检查您的凭据");
+      console.error("auth error:", error);
+      setErrorMessage("auth error, please check your credentials");
     }
   };
 
-  const togglePasswordVisibility = () => {
+  const togglePasswordVisibility = () => {  
     setShowPassword(!showPassword);
   };
 
@@ -122,6 +124,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
                   value={formData.firstName}
                   onChange={(e) => handleInputChange("firstName", e.target.value)}
                   isRequired
+                  errorMessage={formData.firstName === "" ? "Please enter your first name" : ""}
                 />
                 <Input
                   label="Last Name"
@@ -130,6 +133,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
                   value={formData.lastName}
                   onChange={(e) => handleInputChange("lastName", e.target.value)}
                   isRequired
+                  errorMessage={formData.lastName === "" ? "Please enter your last name" : ""}
                 />
                 
               </div>
@@ -145,6 +149,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   isRequired
+                  errorMessage={formData.email === "" ? "Please enter your email address" : ""}
                 />
                 <Input
                   color="default"
@@ -154,6 +159,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
                   isRequired
+                  errorMessage={formData.phone === "" ? "Please enter your phone number" : ""}
                 />
               </div>
 
@@ -166,7 +172,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
                 placeholder="Enter your email address or phone number"
                 value={formData.account}
                 onChange={(e) => handleInputChange("account", e.target.value)}
-                isRequired
+                errorMessage={formData.account === "" ? "Please enter your account" : ""}
               />
             ) }
             
@@ -177,7 +183,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
               placeholder="Enter your password"
               value={formData.password}
               onChange={(e) => handleInputChange("password", e.target.value)}
-              isRequired
+              errorMessage={formData.password === "" ? "Please enter your password" : ""}
               endContent={
                 <button
                   className="focus:outline-none"
@@ -201,6 +207,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
                 value={formData.confirmPassword}
                 onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
                 isRequired
+                errorMessage={formData.confirmPassword === "" ? "Please confirm your password" : ""}
               />
             )}
 
@@ -250,6 +257,8 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
             </Button>
 
             <Divider className="my-2" />
+
+            <Alert color="danger" title={errorMessage} isVisible={errorMessage !== ""} />
 
             <div className="text-center">
               <span className="text-sm text-gray-300">

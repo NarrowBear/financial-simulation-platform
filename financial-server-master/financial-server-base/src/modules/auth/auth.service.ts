@@ -64,4 +64,15 @@ export class AuthService {
             access_token: this.jwtService.sign(payload, { expiresIn: '1h' }),
         };
     }
+
+    async me(user: any) {
+        return {
+            phone: user.phone,
+            nickName: user.nickName,
+            userUin: user.userUin,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName
+        };
+    }
 }

@@ -14,6 +14,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (account: string, password: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
   register: (userData: any) => Promise<void>;
   logout: () => void;
 }
@@ -34,15 +35,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // 检查本地存储的token
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      // 验证token有效性
+    const accessToken = localStorage.getItem('authToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (accessToken && refreshToken) {
+      // 可选：尝试获取当前用户信息，但无论成功与否，都认为已登录
       authApi.getCurrentUser()
         .then(response => {
           setUser(response.data);
-        })
-        .catch(() => {
-          localStorage.removeItem('authToken');
         })
         .finally(() => {
           setIsLoading(false);
@@ -55,11 +54,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (account: string, password: string) => {
     try {
       const response = await authApi.login(account, password);
-      const { token, user: userData } = response.data;
-      localStorage.setItem('authToken', token);
-      setUser(userData);
+      if (response.code === 200) {
+        const { access_token, refresh_token } = response.data;
+        localStorage.setItem('authToken', access_token);
+        localStorage.setItem('refreshToken', refresh_token);
+        console.log('login success', response.data);
+        // 获取用户信息
+        await refreshUser();
+      }
     } catch (error) {
       throw error;
+    }
+  };
+
+  const refreshUser = async () => {
+    try {
+      const response = await authApi.getCurrentUser();
+      setUser(response.data);
+    } catch (error) {
+      // 静默失败，仍然保持基于 token 的已登录状态
     }
   };
 
@@ -76,6 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
     setUser(null);
     authApi.logout().catch(() => {
       // 忽略登出API错误
@@ -84,9 +98,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value = {
     user,
-    isAuthenticated: !!user,
+    // 只要本地存在 access 与 refresh token 即认为已登录
+    isAuthenticated: Boolean(
+      typeof window !== 'undefined' &&
+      localStorage.getItem('authToken') &&
+      localStorage.getItem('refreshToken')
+    ),
     isLoading,
     login,
+    refreshUser,
     register,
     logout,
   };
