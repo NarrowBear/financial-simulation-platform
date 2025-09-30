@@ -14,26 +14,26 @@ export class JwtAdvancedFilter implements NestInterceptor {
 
         console.log('JWT Advanced Filter - Processing request with auth header:', authHeader);
 
-        // 解析Authorization头
+        // Parse Authorization header
         if (authHeader && authHeader.startsWith('Bearer ')) {
             const token = authHeader.substring(7);
             
             try {
-                // 解析JWT token
+                // Parse JWT token
                 const decoded = this.jwtService.verify(token);
                 console.log('JWT Advanced Filter - Decoded token:', decoded);
                 
-                // 检查token是否过期
+                // Check if token is expired
                 const currentTime = Math.floor(Date.now() / 1000);
                 if (decoded.exp && decoded.exp < currentTime) {
                     throw new UnauthorizedException('Token has expired');
                 }
 
-                // 检查token是否即将过期（1小时内）
+                // Check if token is expiring soon (within 1 hour)
                 const oneHour = 3600;
                 const isExpiringSoon = decoded.exp && (decoded.exp - currentTime) < oneHour;
                 
-                // 将解析后的用户信息添加到请求对象
+                // Add parsed user information to request object
                 request.user = {
                     ...decoded,
                     isExpiringSoon,

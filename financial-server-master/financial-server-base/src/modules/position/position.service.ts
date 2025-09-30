@@ -6,14 +6,17 @@ import { CreatePositionDto } from './dto/create-position.dto';
 import { UpdatePositionDto } from './dto/update-position.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { RedisService } from 'src/common/service/redis.service';
+import { BaseService } from 'src/common/service/base.service';
 
 @Injectable()
-export class PositionService {
+export class PositionService extends BaseService<Position> {
   constructor(
     @InjectRepository(Position)
     private positionRepository: Repository<Position>,
     private readonly redisService: RedisService,
-  ) {}
+  ) {
+    super(positionRepository);
+  }
 
   /**
    * Frozen symbol quantity

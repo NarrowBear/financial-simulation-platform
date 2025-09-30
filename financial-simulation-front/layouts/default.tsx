@@ -2,8 +2,6 @@ import { Link } from "@heroui/link";
 
 import { Head } from "./head";
 
-import { Navbar } from "@/components/navbar";
-
 export default function DefaultLayout({
   children,
 }: {
@@ -12,7 +10,7 @@ export default function DefaultLayout({
   return (
     <div className="relative flex flex-col h-screen">
       {/* <Head /> */}
-      <Navbar />
+      {/* Navbar removed */}
       <main className="flex-grow pt-16">
         {children}
       </main>

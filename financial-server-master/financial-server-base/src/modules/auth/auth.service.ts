@@ -12,7 +12,7 @@ export class AuthService {
     ) {}
 
     async register(body: RegisterDto): Promise<Boolean> {
-        const { phone, password, nickName, avatar, idCard, email, firstName, lastName } = body;
+        const { phone, password, avatar, idCard, email, firstName, lastName } = body;
         const hasPhone = await this.userService.exists({ phone });
         if(hasPhone) {
             console.log('User already exists');
@@ -30,7 +30,9 @@ export class AuthService {
         }
         const createdTime = new Date();
         const updatedTime = new Date();
-        await this.userService.create({ phone, password, nickName, avatar, idCard, email, firstName, lastName, userUin, createdTime, updatedTime });
+        // create random nickName
+        const nickName = Math.random().toString(36).substring(2, 15);
+        await this.userService.create({ phone, password, nickName: nickName, avatar, idCard, email, firstName, lastName, userUin, createdTime, updatedTime });
         return true;
     }
 

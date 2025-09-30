@@ -2,12 +2,9 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { 
-  MagnifyingGlassIcon,
-  SunIcon,
   UserIcon,
-  ChartBarIcon
 } from "@heroicons/react/24/outline";
-
+import { User } from "@heroui/react";
 import { Head } from "./head";
 import { Logo } from "@/components/icons";
 import AuthModal from "@/components/auth-modal";
@@ -52,7 +49,7 @@ export default function MainLayout({
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const { isAuthenticated } = useAuth();
-
+  console.log(isAuthenticated);
   const handleOpenAuthModal = (mode: "login" | "register") => {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
@@ -101,10 +98,16 @@ export default function MainLayout({
             <div className="flex items-center space-x-4">
               {/* <MagnifyingGlassIcon className="w-6 h-6 text-white cursor-pointer hover:text-blue-400 transition-colors" />
               <SunIcon className="w-6 h-6 text-white cursor-pointer hover:text-blue-400 transition-colors" /> */}
-              <UserIcon 
+              {!isAuthenticated ? <UserIcon 
                 className="w-6 h-6 text-white cursor-pointer hover:text-blue-400 transition-colors" 
                 onClick={() => handleOpenAuthModal("login")}
-              />
+              /> :  <User
+                    avatarProps={{
+                      src: "https://i.pravatar.cc/150?u=a04258114e29026702d",
+                    }}
+                    description="Product Designer"
+                    name="Jane Doe"
+                  />}
             </div>
           </div>
         </div>

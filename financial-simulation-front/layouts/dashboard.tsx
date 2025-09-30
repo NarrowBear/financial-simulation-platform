@@ -11,7 +11,6 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Head } from "./head";
-import { Navbar } from "@/components/navbar";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -90,7 +89,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        <Navbar />
+        {/* Navbar removed */}
         <main className="flex-1 p-6 overflow-y-auto">
           {children}
         </main>

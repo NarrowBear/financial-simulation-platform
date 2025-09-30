@@ -23,6 +23,7 @@ export class AuthController {
     }
 
     @Post('refresh')
+    @UseInterceptors(JwtAdvancedFilter)
     async refresh(@Body('refresh_token') refreshToken: string): Promise<Response<any>> {
         return Response.success(await this.authService.refreshToken(refreshToken));
     }

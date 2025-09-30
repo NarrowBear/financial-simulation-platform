@@ -5,17 +5,17 @@ export class TradeRecord {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'account_id', nullable: true, comment: '账户ID' })
+  @Column({ name: 'account_id', nullable: true, comment: 'Account ID' })
   accountId: number;
 
   @Column({ 
     type: 'int', 
     nullable: true, 
-    comment: '股票' 
+    comment: 'Stock Symbol' 
   })
   symbol: number;
 
-  @Column({ name: 'order_id', nullable: true, comment: '订单ID' })
+  @Column({ name: 'order_id', nullable: true, comment: 'Order ID' })
   orderId: number;
 
   @Column({ 
@@ -23,11 +23,11 @@ export class TradeRecord {
     type: 'varchar', 
     length: 16, 
     nullable: true, 
-    comment: '订单类型' 
+    comment: 'Order Type' 
   })
   orderType: string;
 
-  @Column({ name: 'trade_quantity', nullable: true, comment: '交易数量' })
+  @Column({ name: 'trade_quantity', nullable: true, comment: 'Trade Quantity' })
   tradeQuantity: number;
 
   @Column({ 
@@ -35,7 +35,7 @@ export class TradeRecord {
     precision: 18, 
     scale: 2, 
     nullable: true, 
-    comment: '交易总金额' 
+    comment: 'Total Trade Amount' 
   })
   price: number;
 

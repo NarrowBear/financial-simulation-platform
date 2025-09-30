@@ -32,6 +32,7 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     // 检查本地存储的token
@@ -58,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { access_token, refresh_token } = response.data;
         localStorage.setItem('authToken', access_token);
         localStorage.setItem('refreshToken', refresh_token);
-        console.log('login success', response.data);
+        setIsAuthenticated(true);
         // 获取用户信息
         await refreshUser();
       }
@@ -79,9 +80,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (userData: any) => {
     try {
       const response = await authApi.register(userData);
-      const { token, user: newUser } = response.data;
-      localStorage.setItem('authToken', token);
-      setUser(newUser);
+      if (response.code === 200) {
+      }
     } catch (error) {
       throw error;
     }
